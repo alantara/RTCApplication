@@ -1,26 +1,29 @@
+//Server Variables
 const app = require("express")();
-const server = require("http").Server(app);
-const Socket = require("socket.io")(server);
-const { Server } = require("socket.io");
-const io = new Server(server);
+const httpServer = require("http").Server(app);
 
+const { Server } = require("socket.io");
+const ioSocket = new Server(httpServer);
+
+//Next Variables
 const next = require("next")
 const nextApp = next({ dev: true })
 const nextHandler = nextApp.getRequestHandler();
 
+//Routing (Next.js)
 nextApp.prepare().then(() => {
+    //+Add Api Routes
     app.get("*", (req, res) => {
         return nextHandler(req, res)
     })
 })
 
-io.on('connection', (socket) => {
-    Socket.emit("message", { message: "Server Opened" })
-    console.log('a user connected');
+//Websocket Connection Configuration
+ioSocket.on('connection', (socket) => {
+    console.log('user connected');
 
-    socket.on('message', (arg) => {
-        console.log(arg);
-        io.emit('message', "Button Pressed 2")
+    socket.on('MessageSend', (message) => {
+        ioSocket.emit('MessageReceived', message)
     });
 
     socket.on('disconnect', () => {
@@ -28,7 +31,8 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(3000, (err) => {
+//Start Server
+httpServer.listen(3000, (err) => {
     if (err) throw err
     console.log('> Ready on http://localhost:3000')
 })
