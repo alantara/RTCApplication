@@ -10,29 +10,65 @@ const next = require("next")
 const nextApp = next({ dev: true })
 const nextHandler = nextApp.getRequestHandler();
 
-//Routing (Next.js)
-nextApp.prepare().then(() => {
-    //+Add Api Routes
-    app.get("*", (req, res) => {
-        return nextHandler(req, res)
-    })
-})
+//MySql Connection
+const mysql = require('mysql');
+require('dotenv').config()
 
-//Websocket Connection Configuration
-ioSocket.on('connection', (socket) => {
-    console.log('user connected');
-
-    socket.on('MessageSend', (message) => {
-        ioSocket.emit('MessageReceived', message)
-    });
-
-    socket.on('disconnect', () => {
-        console.log('user disconnected');
-    });
+var con = mysql.createConnection({
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_DBNAME
 });
 
-//Start Server
-httpServer.listen(3000, (err) => {
-    if (err) throw err
-    console.log('> Ready on http://localhost:3000')
-})
+
+con.connect(function (err) {
+    if (err) throw err;
+
+    //Routing (Next.js)
+    nextApp.prepare().then(() => {
+        //+Add Api Routes
+        app.get("*", (req, res) => {
+            return nextHandler(req, res)
+        })
+    })
+
+    //Websocket Connection Configuration
+    ioSocket.on('connection', (socket) => {
+
+        //Message Event
+        socket.on('MessageSend', (message) => {
+
+            let sql = `INSERT INTO messages (messages, timestamp, author) VALUES ("${message.message}",${message.timestamp},"${message.user}")`
+
+            con.query(sql, function (err, result) {
+                if (err) throw err;
+            });
+
+            ioSocket.emit('MessageReceived', message)
+        });
+
+        //Clear Message
+        socket.on('ClearChat', (timestamp) => {
+
+            let sql = `DELETE FROM messages WHERE timestamp=${timestamp}`
+
+            con.query(sql, function (err, result) {
+                if (err) throw err;
+            });
+
+            ioSocket.emit('ClearChatReceived', timestamp)
+        });
+
+        socket.on('disconnect', () => {
+            console.log('User Disconnected');
+        });
+    });
+
+    //Start Server
+    httpServer.listen(80, (err) => {
+        if (err) throw err
+        console.log('> Ready on http://localhost:80')
+    })
+});
