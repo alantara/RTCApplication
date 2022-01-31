@@ -32,6 +32,9 @@ con.connect(function (err) {
         app.get("*", (req, res) => {
             return nextHandler(req, res)
         })
+        app.post('*', (req, res) => {
+            return nextHandler(req, res)
+        })
     })
 
     //Websocket Connection Configuration
