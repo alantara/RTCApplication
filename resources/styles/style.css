@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css?family=Rubik:400,500&display=swap');
+
 *,
 *::before,
 *::after{
@@ -8,5 +10,5 @@
 
 body, html, #__next{
     height: 100%;
+    font-family: 'Rubik', sans-serif;
 }
-

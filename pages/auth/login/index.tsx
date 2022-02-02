@@ -1,15 +1,12 @@
 import Link from 'next/link'
 import style from './index.module.css'
 import { useRouter } from 'next/router';
-import { Router } from 'express';
 
 
 
 export default function Home({ }) {
     let router = useRouter()
     async function LogIn(data) {
-
-
 
         fetch("../api/login", {
             method: "POST",
@@ -25,25 +22,20 @@ export default function Home({ }) {
 
     }
     return (
-        <div id={style.body}>
-            <div className={style.background}>
-                <div className={style.shape}></div>
-                <div className={style.shape}></div>
+        <div className={style.container}>
+            <div className={style.left}>
+                <div className={style.header}>
+                    <h2 className={`${style.animation} ${style.a1}`}>Welcome Back</h2>
+                    <h4 className={`${style.animation} ${style.a2}`}>Log in to your account using email and password</h4>
+                </div>
+                <div className={style.form}>
+                    <input id='email' type="email" className={`${style["form-field"]} ${style.animation} ${style.a3}`} placeholder="Email Address"></input>
+                    <input id='password' type="password" className={`${style["form-field"]} ${style.animation} ${style.a4}`} placeholder="Password"></input>
+                    <p className={`${style.animation} ${style.a5}`}><a href="#">Forgot Password</a></p>
+                    <button className={`${style.animation} ${style.a6}`} onClick={() => LogIn({ email: document.getElementById("email").value, password: document.getElementById("password").value })}>LOGIN</button>
+                </div>
             </div>
-            <form id={style.form}>
-                <h3>LogIn Here</h3>
-
-                <label className={style.label}>E-mail</label>
-                <input className={style.input} type="text" placeholder="Email or Phone" id="email"></input>
-
-                <label className={style.label}>Password</label>
-                <input className={style.input} type="password" placeholder="Password" id="password"></input>
-
-                <button type='button' id={style.button} onClick={() => LogIn({ email: document.getElementById("email").value, password: document.getElementById("password").value })}>Log In</button>
-                <Link href="/auth/signup">
-                    <button id={style.button}>Sign Up</button>
-                </Link>
-            </form>
+            <div className={style.right}></div>
         </div>
     )
 }
