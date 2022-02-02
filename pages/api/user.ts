@@ -8,11 +8,11 @@ export default withIronSessionApiRoute(
         return res.send({ status: 403 })
     },
     {
-        cookieName: "myapp_cookiename",
+        cookieName: "authcookie",
         password: "UPsYAQivZL1CTZ2pohnJFcPVyDFR1Xeh0Wn",
         // secure: true should be used in production (HTTPS) but can't be used in development (HTTP)
         cookieOptions: {
-            secure: process.env.NODE_ENV === "production",
+            secure: false,
         },
     },
 );

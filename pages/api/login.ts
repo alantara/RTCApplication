@@ -1,37 +1,36 @@
 import { withIronSessionApiRoute } from "iron-session/next";
 import { NextApiRequest, NextApiResponse } from "next";
+import { DBConnect } from "./dbconnect";
 
 export default withIronSessionApiRoute(
   async function loginRoute(req: NextApiRequest, res: NextApiResponse) {
 
-    const knex = require('knex')({
-      client: 'mysql',
-      connection: {
-        host: process.env.DB_HOST,
-        port: process.env.DB_PORT,
-        user: process.env.DB_USER,
-        password: process.env.DB_PASS,
-        database: process.env.DB_DBNAME
-      },
-    });
+    let knex = DBConnect()
 
-    let data = JSON.parse(JSON.stringify(await knex.raw(`select * from users where username = "${req.body.data.username}"`)))[0][0]
+    if (!req.body.email || !req.body.password) return res.status(400).send("INPUT_BLANK")
 
-    if (data.password != req.body.data.password) return
+    //PARSE CREDENTIAL AND KEYWORD
+    let inputCredential = req.body.email
+    let inputKeyword = req.body.password
 
-    // get user from database then:
+    let data = (await knex.raw(`select * from users where credential = "${inputCredential}"`))[0]
+
+    if (data[0].keyword != inputKeyword) return
+
     req.session.user = {
-      id: req.body.data.username,
+      id: data[0].username,
+      profilePic: data[0].profileImage
     };
     await req.session.save();
-    res.send({ ok: true });
+
+    res.status(200).send("LOGGED_IN");
   },
   {
-    cookieName: "myapp_cookiename",
+    cookieName: "authcookie",
     password: "UPsYAQivZL1CTZ2pohnJFcPVyDFR1Xeh0Wn",
     // secure: true should be used in production (HTTPS) but can't be used in development (HTTP)
     cookieOptions: {
-      secure: process.env.NODE_ENV === "production",
+      secure: false,
     },
   },
 );

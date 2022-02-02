@@ -1,19 +1,7 @@
 import { withIronSessionSsr } from "iron-session/next";
 import { InferGetServerSidePropsType } from "next";
 import Router from 'next/router'
-
-
-async function Send(window, data) {
-    await fetch("api/login", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            'Access-Control-Allow-Origin': '*'
-        },
-        body: JSON.stringify({ data })
-
-    })
-}
+import Link from 'next/link'
 
 async function Logout(window) {
     await fetch("api/logout", {
@@ -31,14 +19,23 @@ export default function SsrProfile({
     user,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
     return (<>
-        <div>{user == false ? <><input id="username"></input><input id="password"></input><button onClick={() => Send(window, { username: document.getElementById("username").value, password: document.getElementById("password").value })}>Button</button></> : <><h1>{user.id}</h1><br></br><button onClick={() => Logout(window)}>Logout</button></>}</div>
+        <div>{user == false ? <>
+            <Link href="/auth/login">
+                <button>Log In</button>
+            </Link>
+            <Link href="/auth/signup">
+                <button>SignUp</button>
+            </Link>
+        </> :
+            <><h1>{user.id}</h1><br></br>
+                <img src={user.profilePic}></img>
+                <button onClick={() => Logout(window)}>Logout</button></>}</div>
     </>)
 }
 
 export const getServerSideProps = withIronSessionSsr(
     async function getServerSideProps({ req }) {
         const user = req.session.user;
-        console.log(user)
         if (!user?.id) {
             return {
                 props: {
@@ -49,12 +46,12 @@ export const getServerSideProps = withIronSessionSsr(
 
         return {
             props: {
-                user: req.session.user,
+                user: req.session.user
             },
         };
     },
     {
-        cookieName: "myapp_cookiename",
+        cookieName: "authcookie",
         password: "UPsYAQivZL1CTZ2pohnJFcPVyDFR1Xeh0Wn",
         // secure: true should be used in production (HTTPS) but can't be used in development (HTTP)
         cookieOptions: {
