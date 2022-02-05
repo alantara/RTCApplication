@@ -1,6 +1,5 @@
 import { DBConnect } from "../dbconnect";
 import { withSessionRoute } from "../../../lib/sessionHandler";
-import { ParseEmail, ParsePassword } from "./parse";
 
 export default withSessionRoute(loginRoute);
 
@@ -11,9 +10,9 @@ async function loginRoute(req, res) {
 
   if (!email || !password) return res.status(400).send("MISSING_ARGUMENTS")
 
-  let data = (await knex.raw(`select username, credential, keyword, profileImage from users where credential = "${email.toLowerCase()}"`))[0]
+  let data = (await knex.raw(`select username, credential, keyword, profileImage from users where credential = "${email.toLowerCase()}" and binary keyword ="${password}"`))[0]
 
-  if (data[0]?.keyword != password) return
+  if (!data[0]?.keyword) return res.status(204).send("USER_NOT_FOUND")
 
   req.session.user = {
     username: data[0].username,
