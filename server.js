@@ -5,16 +5,18 @@ const httpServer = require("http").Server(app);
 const { Server } = require("socket.io");
 const ioSocket = new Server(httpServer);
 
+require('dotenv').config()
+let port = 80
+
 //Next Variables
 const next = require("next")
-const nextApp = next({ dev: true })
+const nextApp = next({ dev: process.env.NODE_ENV === "development" })
 const nextHandler = nextApp.getRequestHandler();
 
 //MySql Connection
 const mysql = require('mysql');
-require('dotenv').config()
 
-var con = mysql.createConnection({
+var db = mysql.createConnection({
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     user: process.env.DB_USER,
@@ -23,7 +25,7 @@ var con = mysql.createConnection({
 });
 
 
-con.connect(function (err) {
+db.connect(function (err) {
     if (err) throw err;
 
     //Routing (Next.js)
@@ -45,7 +47,7 @@ con.connect(function (err) {
 
             let sql = `INSERT INTO messages (messages, timestamp, author) VALUES ("${message.message}",${message.timestamp},"${message.user}")`
 
-            con.query(sql, function (err, result) {
+            db.query(sql, function (err, result) {
                 if (err) throw err;
             });
 
@@ -57,7 +59,7 @@ con.connect(function (err) {
 
             let sql = `DELETE FROM messages WHERE timestamp=${timestamp}`
 
-            con.query(sql, function (err, result) {
+            db.query(sql, function (err, result) {
                 if (err) throw err;
             });
 
@@ -70,8 +72,8 @@ con.connect(function (err) {
     });
 
     //Start Server
-    httpServer.listen(80, (err) => {
+    httpServer.listen(port, (err) => {
         if (err) throw err
-        console.log('> Ready on http://localhost:80')
+        console.log(`> Ready on http://localhost:${port}`)
     })
 });

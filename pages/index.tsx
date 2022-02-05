@@ -5,12 +5,11 @@ import Link from 'next/link'
 
 async function Logout(window) {
     await fetch("api/logout", {
-        method: "POST",
+        method: "GET",
         headers: {
             "Content-Type": "application/json",
             'Access-Control-Allow-Origin': '*'
         },
-        body: JSON.stringify({ name: "Xarobil" })
     })
     Router.reload(window.location.pathname);
 }
