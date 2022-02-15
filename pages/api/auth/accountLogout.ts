@@ -4,5 +4,5 @@ export default withSessionRoute(logoutRoute);
 
 function logoutRoute(req, res) {
     req.session.destroy();
-    res.send({ ok: true });
+    res.status(200).send("LOGGED_OUT");
 }

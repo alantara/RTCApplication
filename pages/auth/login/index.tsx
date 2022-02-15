@@ -5,8 +5,8 @@ import { InferGetServerSidePropsType } from "next";
 
 export const getServerSideProps = withSessionSsr(
     async function getServerSideProps({ req }) {
-        const user = req.session.user;
-        if (user?.id) {
+        const sessionData = req.session.data;
+        if (sessionData) {
             return {
                 redirect: {
                     permanent: false,
@@ -56,7 +56,7 @@ export default function SsrProfile({
         if (!email) document.getElementById("emailreq").classList.add(style.show)
         if (!password) return document.getElementById("passreq").classList.add(style.show)
 
-        fetch("../api/auth/login", {
+        fetch("../api/auth/accountLogin", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

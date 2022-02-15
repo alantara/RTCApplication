@@ -1,14 +1,15 @@
+import style from '../index.module.css'
+import { useRouter } from 'next/router';
 import { withSessionSsr } from "../../../lib/sessionHandler";
 import { InferGetServerSidePropsType } from "next";
-import { useRouter } from 'next/router';
-import style from '../index.module.css'
 
 export const getServerSideProps = withSessionSsr(
     async function getServerSideProps({ req }) {
-        const user = req.session.user;
-        if (user?.id) {
+        const sessionData = req.session.data;
+        if (sessionData) {
             return {
                 redirect: {
+                    permanent: false,
                     destination: "/user"
                 }
             }
@@ -59,7 +60,7 @@ export default function SsrProfile({
         if (!cpassword) return document.getElementById("cpassreq").classList.add(style.show)
         if (password != cpassword) return document.getElementById("passwordnotmatch").classList.add(style.show)
 
-        let signRes = await fetch("../api/auth/signup", {
+        let signRes = await fetch("../api/auth/accountSignup", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

@@ -43,15 +43,21 @@ db.connect(function (err) {
     ioSocket.on('connection', (socket) => {
 
         //Message Event
-        socket.on('MessageSend', (message) => {
+        socket.on('MessageSend', ({ message, userID, channelID }) => {
 
-            let sql = `INSERT INTO messages (messages, timestamp, author) VALUES ("${message.message}",${message.timestamp},"${message.user}")`
+            fetch("http://localhost/api/guild/messageCreate", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    'Access-Control-Allow-Origin': '*'
+                },
+                body: JSON.stringify({ message: message, userID: userID, channelID: channelID })
 
-            db.query(sql, function (err, result) {
-                if (err) throw err;
-            });
+            }).then((req) => {
+                if (req.status == 200) { ioSocket.to(channelID).emit('MessageReceived', message) }
+            })
 
-            ioSocket.emit('MessageReceived', message)
+
         });
 
         //Clear Message
@@ -64,6 +70,10 @@ db.connect(function (err) {
             });
 
             ioSocket.emit('ClearChatReceived', timestamp)
+        });
+
+        socket.on('JoinRoom', ({ room }) => {
+            socket.join(room)
         });
 
         socket.on('disconnect', () => {

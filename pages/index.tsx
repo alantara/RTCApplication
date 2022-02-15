@@ -1,61 +1,32 @@
-import { withIronSessionSsr } from "iron-session/next";
+import { withSessionSsr } from "../lib/sessionHandler";
 import { InferGetServerSidePropsType } from "next";
-import Router from 'next/router'
-import Link from 'next/link'
 
-async function Logout(window) {
-    await fetch("api/logout", {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-            'Access-Control-Allow-Origin': '*'
-        },
-    })
-    Router.reload(window.location.pathname);
-}
-
-export default function SsrProfile({
-    user,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) {
-    return (<>
-        <div>{user == false ? <>
-            <Link href="/auth/login">
-                <button>Log In</button>
-            </Link>
-            <Link href="/auth/signup">
-                <button>SignUp</button>
-            </Link>
-        </> :
-            <><h1>{user.id}</h1><br></br>
-                <img src={user.profilePic}></img>
-                <button onClick={() => Logout(window)}>Logout</button></>}</div>
-    </>)
-}
-
-export const getServerSideProps = withIronSessionSsr(
+export const getServerSideProps = withSessionSsr(
     async function getServerSideProps({ req }) {
         const user = req.session.user;
-        if (!user?.id) {
+        if (!user?.username) {
             return {
-                props: {
-                    user: false,
-                },
+                redirect: {
+                    permanent: false,
+                    destination: "/auth/login"
+                }
             };
         }
 
         return {
-            props: {
-                user: req.session.user
-            },
+            redirect: {
+                permanent: false,
+                destination: "/user"
+            }
         };
-    },
-    {
-        cookieName: "authcookie",
-        password: "UPsYAQivZL1CTZ2pohnJFcPVyDFR1Xeh0Wn",
-        // secure: true should be used in production (HTTPS) but can't be used in development (HTTP)
-        cookieOptions: {
-            secure: false,
-        },
-    },
+    }
 );
+
+export default function SsrProfile({
+
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+    return (<h1>Await For Redirect</h1>)
+}
+
+
 

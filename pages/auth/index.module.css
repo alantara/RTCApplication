@@ -12,7 +12,7 @@
   }
   
   .container {
-    background-color: rgb(10, 10, 10); 
+    background-color: var(--primary-bg-color); 
     overflow: hidden;
     display: flex;
     flex-wrap: wrap;

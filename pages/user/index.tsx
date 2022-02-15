@@ -2,7 +2,7 @@ import { withSessionSsr } from "../../lib/sessionHandler";
 import { InferGetServerSidePropsType } from "next";
 import { useRouter } from 'next/router'
 import style from "./profile.module.css"
-
+import Link from "next/link"
 
 
 export default function SsrProfile({
@@ -12,7 +12,7 @@ export default function SsrProfile({
     let router = useRouter()
 
     async function Logout(window) {
-        await fetch("api/auth/logout", {
+        await fetch("api/auth/accountLogout", {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -32,7 +32,10 @@ export default function SsrProfile({
                     <img src={user.profilePic} />
                     <h2>{user.username}</h2>
                     <h4>{user.email}</h4>
+                    <h4>{user.id}</h4>
+                    <h4>{user.profilePic}</h4>
                     <button onClick={() => Logout(window)}>LogOut</button>
+                    <Link href="/guild"><button>Guilds</button></Link>
                 </div>
             </div>
             <div className={style.right}></div>
@@ -43,8 +46,8 @@ export default function SsrProfile({
 
 export const getServerSideProps = withSessionSsr(
     async function getServerSideProps({ req }) {
-        const user = req.session.user;
-        if (!user?.username) {
+        const sessionData = req.session.data;
+        if (!sessionData) {
             return {
                 redirect: {
                     permanent: false,
@@ -55,7 +58,7 @@ export const getServerSideProps = withSessionSsr(
 
         return {
             props: {
-                user: req.session.user
+                user: req.session.data.user
             },
         };
     }
