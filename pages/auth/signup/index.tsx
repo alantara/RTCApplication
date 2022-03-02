@@ -1,7 +1,19 @@
-import style from '../index.module.css'
-import { useRouter } from 'next/router';
-import { withSessionSsr } from "../../../lib/sessionHandler";
+//Essentials
 import { InferGetServerSidePropsType } from "next";
+import { withSessionSsr } from "../../../lib/sessionHandler";
+
+//Mantine
+import { useForm } from '@mantine/hooks';
+import { useNotifications } from '@mantine/notifications';
+import { TextInput, PasswordInput, Title, Button, createStyles } from '@mantine/core';
+
+//React & Next.js
+import { useState } from 'react';
+import { useRouter } from 'next/router';
+
+//Custom
+import { ParseEmail, ParsePassword, ParseName } from "../../../lib/argumentParse"
+
 
 export const getServerSideProps = withSessionSsr(
     async function getServerSideProps({ req }) {
@@ -10,7 +22,7 @@ export const getServerSideProps = withSessionSsr(
             return {
                 redirect: {
                     permanent: false,
-                    destination: "/user"
+                    destination: "/guild"
                 }
             }
         }
@@ -22,80 +34,112 @@ export const getServerSideProps = withSessionSsr(
     }
 );
 
+
 export default function SsrProfile({
 
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
 
     const router = useRouter();
+    const notifications = useNotifications();
 
-    async function Redirect(href, login) {
-        let time = 1000
+    const [loading, setLoading] = useState(false);
 
-        let textAnim = document.getElementsByClassName(style.textAnimationSet)
-        let i = 1
-        Array.from(textAnim).map((el) => {
-            el.classList.add(style[`a${i}Reverse`])
-            el.classList.add(style.textAnimationReverse)
-            i++
-        })
-        if (login) {
-            let slideAnim = document.getElementById("container")
-            slideAnim.classList.add(style.slideAnimReverse)
-            time += 1000
-        }
-        setTimeout(() => {
-            router.push(href)
-        }, time);
-    }
 
-    async function SignUp({ username, email, password, cpassword }) {
-        let errText = document.getElementsByClassName(style.show)
-        Array.from(errText).map((el) => {
-            el.classList.remove(style.show)
-        })
+    //Custom Functions
+    async function SignUp(values) {
+        setLoading(true)
 
-        if (!username) document.getElementById("usernamereq").classList.add(style.show)
-        if (!email) document.getElementById("emailreq").classList.add(style.show)
-        if (!password) document.getElementById("passreq").classList.add(style.show)
-        if (!cpassword) return document.getElementById("cpassreq").classList.add(style.show)
-        if (password != cpassword) return document.getElementById("passwordnotmatch").classList.add(style.show)
-
-        let signRes = await fetch("../api/auth/accountSignup", {
+        let signRes = await fetch("/api/auth/signup", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 'Access-Control-Allow-Origin': '*'
             },
-            body: JSON.stringify({ email: email, password: password, username: username })
+            body: JSON.stringify({ username: values.username, email: values.email, password: values.password })
 
         })
         if (signRes.status == 201) {
-            Redirect("/user", true)
+            router.push("/user")
+        }
+        else {
+            setLoading(false)
+            let response = await signRes.json()
+            notifications.showNotification({
+                id: 'hello-there',
+                disallowClose: true,
+                onClose: () => console.log('unmounted'),
+                onOpen: () => console.log('mounted'),
+                autoClose: 5000,
+                title: `Error ${signRes.status}`,
+                message: `${response.message}`,
+                color: 'red',
+                className: 'my-notification-class',
+                style: { backgroundColor: 'red' },
+                loading: false,
+            });
         }
     }
 
+    const signForm = useForm({
+        initialValues: {
+            email: '',
+            username: '',
+            password: '',
+            cpassword: '',
+        },
+
+        validationRules: {
+            email: (email) => ParseEmail(email),
+            username: (username) => ParseName(username),
+            password: (password) => ParsePassword(password),
+            cpassword: (cpassword, values) => ParsePassword(cpassword) && cpassword == values.password
+        },
+        errorMessages: {
+            email: "Invalid Email",
+            username: "Invalid Username.",
+            password: "Invalid Password.",
+            cpassword: "Passwords Not Matching",
+        }
+    });
+
+    const { classes } = createStyles((theme) => ({
+        root: {
+            marginTop: "5px",
+            borderLeft: "3px solid var(--secondary-tx-colorized)",
+        },
+        label: {
+            paddingLeft: "12px",
+        },
+        input: {
+            paddingLeft: "12px",
+        },
+        error: {
+            paddingLeft: "12px",
+            fontSize: "12px",
+        }
+    }))();
+
     return (
-        <div className={style.body} >
-            <div id="container" className={`${style.container}`}>
-                <div className={style.header}>
-                    <h2 className={`${style.textAnimationSet} ${style.a1} ${style.textAnimation}`}>Welcome</h2>
-                    <h4 className={`${style.textAnimationSet} ${style.a2} ${style.textAnimation}`}>Create an account with your email</h4>
+        <div className="grid h-full grid-cols-[440px_auto]" >
+            <div className="bg-[color:var(--primary-bg-color)] flex flex-col items-left justify-center p-[20px_40px]">
+                <div className="mb-[20px] cursor-default">
+                    <Title order={2} className="text-[color:var(--secondary-tx-colorized)]">Welcome</Title>
+                    <Title order={4} className="font-normal text-[15px]">Create an account with your email</Title>
                 </div>
-                <div className={style.form}>
-                    <input id="username" className={`${style["form-field"]} ${style.textAnimationSet} ${style.a3} ${style.textAnimation}`} placeholder="Username"></input>
-                    <p style={{ color: "red" }} id="usernamereq" className={`${style.hidden}`}>Input Required</p>
-                    <input id="email" className={`${style["form-field"]} ${style.textAnimationSet} ${style.a4} ${style.textAnimation}`} placeholder="Email Address"></input>
-                    <p style={{ color: "red" }} id="emailreq" className={`${style.hidden}`}>Input Required</p>
-                    <input type="password" id="password" className={`${style["form-field"]} ${style.textAnimationSet} ${style.a5} ${style.textAnimation}`} placeholder="Password"></input>
-                    <p style={{ color: "red" }} id="passreq" className={`${style.hidden}`}>Input Required</p>
-                    <input type="password" id="cpassword" className={`${style["form-field"]} ${style.textAnimationSet} ${style.a6} ${style.textAnimation}`} placeholder="Confirm Password"></input>
-                    <p style={{ color: "red" }} id="cpassreq" className={`${style.hidden}`}>Input Required</p>
-                    <p style={{ color: "red" }} id="passwordnotmatch" className={`${style.hidden}`}>Password not match</p>
-                    <p className={`${style.textAnimationSet} ${style.a7} ${style.textAnimation}`}>Already Have An Account? <a onClick={() => Redirect("/auth/login", false)}>Log In</a></p>
-                    <button className={`${style.textAnimationSet} ${style.a8} ${style.textAnimation}`} onClick={() => SignUp({ email: document.getElementById("email").value, username: document.getElementById("username").value, password: document.getElementById("password").value, cpassword: document.getElementById("cpassword").value })}>SIGNUP</button>
-                </div>
+                <form onSubmit={signForm.onSubmit((values) => SignUp(values))} className="flex flex-col gap-[10px_0] max-w-[80%]">
+                    <TextInput classNames={classes} variant="unstyled" placeholder="example@gmail.com" label="Email" required {...signForm.getInputProps('email')} />
+                    <TextInput classNames={classes} variant="unstyled" placeholder="User1234" label="Username" required {...signForm.getInputProps('username')} />
+                    <PasswordInput classNames={classes} variant="unstyled" placeholder="VerySecretPassword" label="Password" required {...signForm.getInputProps('password')} />
+                    <PasswordInput classNames={classes} variant="unstyled" placeholder="VerySecretPassword" label="Confirm Password" required {...signForm.getInputProps('cpassword')} />
+                    <p className="text-[color:var(--secondary-tx-color)] mt-[10px] text-[14px] text-right cursor-default">Already Have An Account?
+                        <a className="text-[color:var(--secondary-tx-colorized)] hover:text-[color:var(--terciary-tx-colorized)] ease-in-out duration-500 cursor-pointer underline" onClick={() => router.push("/auth/login")}>Log In</a>
+                    </p>
+                    <Button className="bg-[color:var(--secondary-tx-colorized)] hover:bg-[color:var(--terciary-tx-colorized)] ease-in-out duration-500" type='submit' loading={loading}>SIGNUP</Button>
+                </form>
             </div>
-            <div className={style.right}></div>
+            <div className="bg-[color:var(--secondary-bg-color)] bg-center bg-cover">
+
+            </div>
         </div >
     )
 }

@@ -12,8 +12,8 @@ export default function SsrProfile({
     let router = useRouter()
 
     async function Logout(window) {
-        await fetch("api/auth/accountLogout", {
-            method: "GET",
+        await fetch("api/auth/logout", {
+            method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 'Access-Control-Allow-Origin': '*'

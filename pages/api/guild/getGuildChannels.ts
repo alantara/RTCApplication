@@ -1,15 +1,29 @@
-import { DBConnect } from "../../../resources/connection/dbconnect";
+import { DBConnect } from "../../../lib/dbconnect";
 import { withSessionRoute } from "../../../lib/sessionHandler";
+import { ParseOnlyNumbers } from "../../../lib/argumentParse";
 
 let knex = DBConnect()
 
-export default withSessionRoute(guildAdd);
+export default withSessionRoute(GetGuildChannelsRoute);
 
-async function guildAdd(req, res) {
-    let guildID = req.body.guildID
+async function GetGuildChannelsRoute(req, res) {
 
-    if (!guildID) return res.status(400).send("MISSING_ARGUMENTS")
+    if (req.method != "POST") return res.status(405).json({ message: "METHOD_NOT_ALLOWED" });
 
-    let channels = (await knex.raw(`select channelName, channelID, guildID from channels where guildID = "${guildID}"`))[0]
-    res.status(200).send({ channels: channels })
+    let api = await GetGuildChannels(req.body.guildID)
+    res.status(api.status).json(api.json)
+
+}
+
+export async function GetGuildChannels(guildID:number) {
+    if (!guildID) return { status: 400, json: { message: "MISSING_ARGUMENTS" } }
+
+    if (!ParseOnlyNumbers(guildID)) return { status: 400, json: { message: "INVALID_USER_ID" } }
+
+    try {
+        let channels = (await knex.raw(`select channelName, channelID from channels where guildID = "${guildID}"`))[0]
+        return { status: 200, json: { channelsData: channels } }
+    } catch (err) {
+        return { status: 500, json: { message: "CHANNEL_SEARCH_ERROR", error: err } }
+    }
 }

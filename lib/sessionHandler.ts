@@ -7,6 +7,19 @@ import {
 
 require('dotenv').config()
 
+declare module "iron-session" {
+    interface IronSessionData {
+        data?: {
+            user: {
+                id: number;
+                username: string;
+                email: string;
+                profilePic: string;
+            };
+        };
+    }
+}
+
 const sessionOptions = {
     password: process.env.COOKIE_SESSION,
     cookieName: "authCookie",
