@@ -1,38 +1,44 @@
 //Next & React
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-//Custom
-import GuildPopup from "./guildPopup";
-
-
-function GuildBar({ loadGuilds, userID }) {
-  
-  const [popOpened, setPopOpened] = useState(false);
-  const [newGuilds, setNewGuilds] = useState([]);
+function GuildBar({ loadGuilds, newGuilds }) {
 
   return (
-    <div className="flex flex-col items-center justify-center gap-2 bg-[color:var(--primary-bg-color)]">
+    <>
       <Link href={`/guild`}>
-        <div style={{ backgroundImage: `url(/d_images/nero.jpg)` }} className="w-[60px] h-[60px] cursor-pointer rounded-[50%] hover:rounded-[25%] ease-in-out duration-[250ms] bg-[color:var(--secondary-bg-color)] bg-cover bg-center"></div>
+        <div
+          className="rounded-circle"
+          style={{ width: "60px", height: "60px", cursor: "pointer", backgroundImage: `url(/d_images/moon.png)`, backgroundSize: "cover", backgroundPosition: "center" }}
+        >
+        </div>
       </Link>
       {
-        loadGuilds.map(el => (
-          <Link href={`/guild/${el.guildID}`}>
-            <div style={{ backgroundImage: `url(${el.guildIcon})` }} className="w-[60px] h-[60px] cursor-pointer rounded-[50%] hover:rounded-[25%] ease-in-out duration-[250ms] bg-[color:var(--secondary-bg-color)] bg-cover bg-center"></div>
+        loadGuilds.map(loadGuild => (
+          <Link href={`/guild/${loadGuild.guildID}`}>
+            <div
+              className="rounded-circle"
+              style={{ width: "60px", height: "60px", cursor: "pointer", backgroundImage: `url(${loadGuild.guildIcon})`, backgroundSize: "cover", backgroundPosition: "center" }}
+            >
+            </div>
           </Link>
         ))
       }
       {
-        newGuilds?.map(el => (
-          <Link href={`/guild/${el.guildID}`}>
-            <div style={{ backgroundImage: `url(${el.guildIcon})` }} className="w-[60px] h-[60px] cursor-pointer rounded-[50%] hover:rounded-[25%] ease-in-out duration-[250ms] bg-[color:var(--secondary-bg-color)] bg-cover bg-center"></div>
+        newGuilds?.map(newGuild => (
+          <Link href={`/guild/${newGuild.guildID}`}>
+            <div
+              className="rounded-circle"
+              style={{ width: "60px", height: "60px", cursor: "pointer", backgroundImage: `url(${newGuild.guildIcon})`, backgroundSize: "cover", backgroundPosition: "center" }}
+            >
+            </div>
           </Link>
         ))
       }
-      <div onClick={() => setPopOpened(true)} style={{ backgroundImage: `url(https://iconsplace.com/wp-content/uploads/_icons/ffa500/256/png/plus-2-icon-11-256.png)` }} className="w-[60px] h-[60px] cursor-pointer rounded-[50%] hover:rounded-[25%] ease-in-out duration-[250ms] bg-[color:var(--secondary-bg-color)] bg-cover bg-center"></div>
-      <GuildPopup userID={userID} newGuilds={newGuilds} setNewGuilds={setNewGuilds} setPopOpened={setPopOpened} popOpened={popOpened} />
-    </div>
+      <button type="button" className="btn p-0 rounded-circle d-flex justify-content-center align-items-center" data-bs-toggle="modal" data-bs-target="#createModal" style={{ width: "60px", height: "60px", cursor: "pointer" }}>
+        <i className="bi bi-plus lh-1" style={{ width: "50px", height: "50px", fontSize: "50px", color: "var(--primary-tx-color)" }}></i>
+      </button>
+    </>
   )
 }
 

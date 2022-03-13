@@ -13,9 +13,9 @@ async function ChannelCreate(req, res) {
 
   if (req.method != "POST") return res.status(405).json({ message: "METHOD_NOT_ALLOWED" });
 
-  let [guildID, channelName] = [req.body.guildID, req.body.channelName]
+  let [guildID, channelName, channelType] = [req.body.guildID, req.body.channelName, req.body.channelType]
 
-  if (!guildID || !channelName) return res.status(400).send("MISSING_ARGUMENTS")
+  if (!guildID || !channelName || !channelType) return res.status(400).send("MISSING_ARGUMENTS")
 
   if (!ParseOnlyNumbers(guildID)) return res.status(400).json({ message: "INVALID_GUILD_ID" })
   if (!ParseName(channelName)) return res.status(400).json({ message: "INVALID_GUILD_NAME" })
@@ -23,7 +23,7 @@ async function ChannelCreate(req, res) {
   let id = parseInt(uid.idFromTimestamp(Date.now()))
 
   try {
-    await knex.raw(`insert into channels (channelName, channelID, guildID) values ("${channelName}", ${id}, ${guildID})`)
+    await knex.raw(`insert into channels (channelName, channelID, guildID, channelType) values ("${channelName}", ${id}, ${guildID}, "${channelType}")`)
 
     res.status(200).send("CHANNEL_CREATED");
   } catch (err) {

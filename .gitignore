@@ -1,7 +1,5 @@
+next-env.d.ts
+ideas.txt
+.env
 node_modules
 .next
-.env
-test
-__databaseStructure
-next-env.d.ts
-tsconfig.json

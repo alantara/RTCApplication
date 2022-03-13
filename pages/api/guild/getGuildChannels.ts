@@ -15,13 +15,13 @@ async function GetGuildChannelsRoute(req, res) {
 
 }
 
-export async function GetGuildChannels(guildID:number) {
+export async function GetGuildChannels(guildID: number) {
     if (!guildID) return { status: 400, json: { message: "MISSING_ARGUMENTS" } }
 
     if (!ParseOnlyNumbers(guildID)) return { status: 400, json: { message: "INVALID_USER_ID" } }
 
     try {
-        let channels = (await knex.raw(`select channelName, channelID from channels where guildID = "${guildID}"`))[0]
+        let channels = (await knex.raw(`select channelName, channelID, channelType from channels where guildID = "${guildID}"`))[0]
         return { status: 200, json: { channelsData: channels } }
     } catch (err) {
         return { status: 500, json: { message: "CHANNEL_SEARCH_ERROR", error: err } }

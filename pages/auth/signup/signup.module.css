@@ -1,0 +1,49 @@
+.background{
+    background-color: var(--secondary-black-bg);
+}
+
+.containerBackground{
+    background-color: var(--primary-black-bg)
+}
+
+.title{
+    color: var(--secondary-violet-tx)
+}
+
+.input{
+    background-color: var(--secondary-black-bg);
+    outline: 0;
+}
+
+.input:focus{
+    background-color: var(--secondary-black-bg);
+    color: var(--primary-white-tx);
+}
+
+.label{
+    color: var(--secondary-white-tx);
+}
+
+.link{
+    color: var(--primary-violet-tx);
+    transition: ease-in-out;
+    transition-duration: 300ms;
+    cursor: pointer;
+}
+
+.link:hover{
+    color: var(--secondary-violet-tx);
+}
+
+.button{
+    background-color: var(--primary-violet-tx);
+    color: var(--primary-white-tx);
+    outline: "none" ;
+    transition: ease-in-out;
+    transition-duration: 300ms;
+}
+
+.button:hover{
+    background-color: var(--secondary-violet-tx);
+    color: var(--primary-white-tx);
+}

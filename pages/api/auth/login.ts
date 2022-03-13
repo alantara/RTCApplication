@@ -1,6 +1,6 @@
 import { DBConnect } from "../../../lib/dbconnect";
 import { withSessionRoute } from "../../../lib/sessionHandler";
-import { ParseEmail, ParsePassword } from "../../../lib/argumentParse"
+import { ParseEmail } from "../../../lib/argumentParse"
 
 const knex = DBConnect()
 
@@ -16,7 +16,6 @@ async function LogInRoute(req, res) {
   if (!email || !password) return res.status(400).json({ message: "MISSING_ARGUMENTS" })
 
   if (!ParseEmail(email)) return res.status(400).json({ message: "INVALID_EMAIL" })
-  if (!ParsePassword(password)) return res.status(400).json({ message: "INVALID_PASSWORD" })
 
   try {
     let data = (await knex.raw(`select accountUsername, accountEmail, profileImage, userID from accounts where accountEmail = "${email.toLowerCase()}" and binary accountPassword ="${password}"`))[0]

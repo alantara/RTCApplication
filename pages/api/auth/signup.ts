@@ -1,6 +1,6 @@
 import { DBConnect } from "../../../lib/dbconnect"
 import { withSessionRoute } from "../../../lib/sessionHandler";
-import { ParseEmail, ParsePassword, ParseName } from "../../../lib/argumentParse"
+import { ParseEmail, ParsePassword, ParseName, ParseOnlyNumbers } from "../../../lib/argumentParse"
 
 const { Snowflake } = require('nodejs-snowflake');
 const uid = new Snowflake();
@@ -21,6 +21,8 @@ async function SignUpRoute(req, res) {
     if (!ParseEmail(email)) return res.status(400).json({ message: "INVALID_EMAIL" })
     if (!ParseName(username)) return res.status(400).json({ message: "INVALID_USERNAME" })
     if (!ParsePassword(password)) return res.status(400).json({ message: "INVALID_PASSWORD" })
+    if (!ParsePassword(password)) return res.status(400).json({ message: "INVALID_PASSWORD" })
+
 
     try {
         let emailSearch = (await knex.raw(`select accountEmail from accounts where accountEmail = "${email.toLowerCase()}"`))[0]

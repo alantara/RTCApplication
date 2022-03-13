@@ -73,7 +73,7 @@ db.connect(function (err) {
     ioSocket.on('connection', (socket) => {
 
         //Message Event
-        socket.on('MessageSend', async ({ message, userID, channelID }) => {
+        socket.on('message-create', async ({ message, userID, channelID }) => {
 
             let req = await fetch(`${hostname}/api/message/create`, {
                 method: "post",
@@ -83,43 +83,63 @@ db.connect(function (err) {
                 },
                 body: JSON.stringify({ message: message, userID: userID, channelID: channelID })
             })
-            if (req.status == 200) { ioSocket.to(channelID).emit('MessageReceived', (await req.json())) }
+            if (req.status == 200) { ioSocket.to(`@${channelID}`).emit('message-created', (await req.json())) }
 
         });
 
-        //Clear Message
-        socket.on('ClearChat', (timestamp) => {
-
-            let sql = `DELETE FROM messages WHERE timestamp=${timestamp}`
-
-            db.query(sql, function (err, result) {
-                if (err) throw err;
-            });
-
-            ioSocket.emit('ClearChatReceived', timestamp)
+        socket.on('text-channel-join', ({ room }) => {
+            Array.from(socket.rooms).slice(1).filter(searchRoom => { return searchRoom.startsWith("@") }).forEach(exitRoom => {
+                socket.leave(exitRoom)
+            })
+            socket.join(`@${room}`)
         });
+
+        socket.on('voice-channel-join', ({ room, id }) => {
+            let parsedRoom = `!${room}`
+            let exitRoom = Array.from(socket.rooms).slice(1).filter(searchRoom => { return searchRoom.startsWith("!") })[0]
+
+            console.log(exitRoom, parsedRoom)
+            if (exitRoom == parsedRoom) return
+
+            socket.leave(exitRoom)
+
+            socket.join(parsedRoom)
+            socket.broadcast.to(parsedRoom).emit("voice-user-joined", { id: id })
+            socket.on("disconnecting", () => {
+                Array.from(socket.rooms).slice(1).filter(searchRoom => { return searchRoom.startsWith("!") }).forEach(exitRoom => {
+                    socket.broadcast.to(exitRoom).emit("voice-user-disconnected", { id: socket.id })
+                })
+            })
+        });
+
+        socket.on('voice-channel-disconnect', ({ id }) => {
+            Array.from(socket.rooms).slice(1).filter(searchRoom => { return searchRoom.startsWith("!") }).forEach(exitRoom => {
+                console.log(exitRoom)
+                socket.broadcast.to(exitRoom).emit("voice-user-disconnected", { id: id })
+                socket.leave(exitRoom)
+            })
+        })
 
         socket.on('JoinRoom', ({ room }) => {
             socket.join(room)
+            socket.on("disconnecting", () => {
+                let to = Array.from(socket.rooms).slice(1)
+                socket.broadcast.to(to).emit("user-disconnected", { id: socket.id })
+            })
         });
 
         socket.on('ExitAllRooms', async () => {
-            let a = []
-
-            for (let e of socket.rooms) {
-                if (e.match(/^[0-9]+$/)) {
-                    a.push(e)
-                }
-            }
-
-            for (let e of a) {
+            Array.from(socket.rooms).slice(1).forEach((e) => {
                 socket.leave(e)
-            }
+            })
         });
 
-        socket.on('disconnect', () => {
-            console.log('User Disconnected');
-        });
+        socket.on("user-disconnected", ({ id, to }) => {
+            if (!socket.rooms.has(to)) return
+            socket.broadcast.to(to).emit("user-disconnected", { id: id })
+        })
+
+
     });
 
     //Start Server

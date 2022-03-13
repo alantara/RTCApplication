@@ -2,18 +2,12 @@
 import { InferGetServerSidePropsType } from "next";
 import { withSessionSsr } from "../../../lib/sessionHandler";
 
-//Mantine
-import { useForm } from '@mantine/hooks';
-import { useNotifications } from '@mantine/notifications';
-import { TextInput, PasswordInput, Title, Button, createStyles } from '@mantine/core';
-
 //React & Next.js
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 
-//Custom
-import { ParseEmail, ParsePassword } from "../../../lib/argumentParse"
-
+//CSS
+import css from "./login.module.css"
 
 export const getServerSideProps = withSessionSsr(
     async function getServerSideProps({ req }) {
@@ -40,14 +34,21 @@ export default function SsrProfile({
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
 
     const router = useRouter();
-    const notifications = useNotifications();
 
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
 
-
-    //Custom Functions
-    async function LogIn(values) {
+    async function LogIn(e) {
+        e.preventDefault()
         setLoading(true)
+
+        let getNowInvalid = document.getElementsByClassName("is-invalid")
+        Array.from(getNowInvalid).forEach(input => {
+            input.classList.remove("is-invalid")
+        });
+
+        let email = e.target.elements.email.value
+        let password = e.target.elements.password.value
 
         let logRes = await fetch("/api/auth/login", {
             method: "POST",
@@ -55,7 +56,7 @@ export default function SsrProfile({
                 "Content-Type": "application/json",
                 'Access-Control-Allow-Origin': '*'
             },
-            body: JSON.stringify({ email: values.email, password: values.password })
+            body: JSON.stringify({ email: email, password: password })
 
         })
         if (logRes.status == 200) {
@@ -64,76 +65,80 @@ export default function SsrProfile({
         else {
             setLoading(false)
             let response = await logRes.json()
-            console.log(response)
-            notifications.showNotification({
-                id: 'hello-there',
-                disallowClose: true,
-                onClose: () => console.log('unmounted'),
-                onOpen: () => console.log('mounted'),
-                autoClose: 5000,
-                title: `Error ${logRes.status}`,
-                message: `${response.message}`,
-                color: 'red',
-                className: 'my-notification-class',
-                style: { backgroundColor: 'red' },
-                loading: false,
-            });
-        }
 
+            let getInput = document.getElementsByTagName("input")
+
+            switch (response.message) {
+                case "MISSING_ARGUMENTS":
+                    setError("Please Fill All The Fields")
+                    Array.from(getInput).forEach(input => {
+                        if (input.value != "") return
+                        input.classList.add("is-invalid")
+                    });
+                    break
+                case "INVALID_EMAIL":
+                    setError("Please Insert A Valid Email")
+                    Array.from(getInput).forEach(input => {
+                        if (input.id != "email") return
+                        input.classList.add("is-invalid")
+                    });
+                    break
+                case "USER_NOT_FOUND":
+                    setError("Mismatch Information. User Not Found!")
+                    Array.from(getInput).forEach(input => {
+                        if (input.id == "email") return
+                        input.classList.add("is-invalid")
+                    });
+                    break
+            }
+        }
     }
 
-    const signForm = useForm({
-        initialValues: {
-            email: '',
-            password: '',
-        },
-
-        validationRules: {
-            email: (email) => ParseEmail(email),
-            password: (password) => ParsePassword(password),
-        },
-        errorMessages: {
-            email: "Invalid Email",
-            password: "Invalid Password.",
-        }
-    });
-
-    const { classes } = createStyles((theme) => ({
-        root: {
-            marginTop: "5px",
-            borderLeft: "3px solid var(--secondary-tx-colorized)",
-        },
-        label: {
-            paddingLeft: "12px",
-        },
-        input: {
-            paddingLeft: "12px",
-        },
-        error: {
-            paddingLeft: "12px",
-            fontSize: "12px",
-        }
-    }))();
-
     return (
-        <div className="grid h-full grid-cols-[440px_auto]" >
-            <div className="bg-[color:var(--primary-bg-color)] flex flex-col items-left justify-center p-[20px_40px]">
-                <div className="mb-[20px] cursor-default">
-                    <Title order={2} className="text-[color:var(--secondary-tx-colorized)]">Welcome Back</Title>
-                    <Title order={4} className="font-normal text-[15px]">Log in to your account using email and password</Title>
-                </div>
-                <form onSubmit={signForm.onSubmit((values) => LogIn(values))} className="flex flex-col gap-[10px_0] max-w-[80%]">
-                    <TextInput classNames={classes} variant="unstyled" placeholder="youremail@gmail.com" label="Email" required {...signForm.getInputProps('email')} />
-                    <PasswordInput classNames={classes} variant="unstyled" placeholder="VerySecretPassword" label="Password" required {...signForm.getInputProps('password')} />
-                    <p className="text-[color:var(--secondary-tx-color)] mt-[10px] text-[14px] text-right cursor-default">Don't Have An Account?
-                        <a className="text-[color:var(--secondary-tx-colorized)] hover:text-[color:var(--terciary-tx-colorized)] ease-in-out duration-500 cursor-pointer underline" onClick={() => router.push("/auth/signup")}>Log In</a>
+        <div className="h-100 w-100 m-0 p-0 grid row overflow-hidden">
+            <div className={`h-100 px-3 col-xxl-3 col-xl-4 col-lg-5 col-md-6 col-sm-8 d-flex flex-column align-items-center justify-content-center ${css.containerBackground}`}>
+                <div className="w-100 px-4 mb-3 justify-content-left">
+                    <h2 className={`${css.title}`}>
+                        Welcome Back
+                    </h2>
+                    <p>
+                        Log in using your email and password
                     </p>
-                    <Button className="bg-[color:var(--secondary-tx-colorized)] hover:bg-[color:var(--terciary-tx-colorized)] ease-in-out duration-500" type='submit' color="violet" loading={loading}>LOGIN</Button>
+                </div>
+                <form onSubmit={(e) => { LogIn(e) }} className="w-100 h-auto px-4 d-flex flex-column gap-2 align-items-center">
+                    <div className="h-100 w-100 form-floating mb-4">
+                        <input id="email" type="text" className={`w-100 h-100 border-0 form-control ${css.input}`} placeholder="Email" aria-label="Email" />
+                        <label htmlFor="email" className={`${css.label}`}>
+                            Email address
+                        </label>
+                        <div className="invalid-feedback">
+                            {error}
+                        </div>
+                    </div>
+
+                    <div className="h-100 w-100 form-floating mb-4">
+                        <input id="password" type="password" className={`w-100 h-100 border-0 form-control ${css.input}`} placeholder="Password" aria-label="Password" />
+                        <label htmlFor="password" className={`${css.label}`}>
+                            Password
+                        </label>
+                        <div className="invalid-feedback">
+                            {error}
+                        </div>
+                    </div>
+
+                    <p className="w-100 text-end">
+                        Don't Have An Account?
+                        <span> </span>
+                        <a className={`${css.link}`} onClick={() => router.push("/auth/signup")}>
+                            SignUp
+                        </a>
+                    </p>
+                    <button type="submit" disabled={loading} className={`w-100 btn fw-bolder ${css.button}`}>
+                        Submit
+                    </button>
                 </form>
             </div>
-            <div className="bg-[color:var(--secondary-bg-color)] bg-center bg-cover">
-
-            </div>
-        </div >
+            <div className={`h-100 col bg-image ${css.background}`}></div>
+        </div>
     )
 }

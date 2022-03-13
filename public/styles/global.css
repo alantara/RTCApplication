@@ -11,19 +11,25 @@
 body, html, #__next{
     height: 100%;
     font-family: 'Rubik', sans-serif;
-    color: var(--primary-tx-color);
+    color: var(--primary-white-tx);
 }
 
 :root{
     /*Background*/
-    --primary-bg-color: #181818;
-    --secondary-bg-color: #1e1e1e;
-    --terciary-bg-color: #232323;
-    --quaternary-bg-color: #262626;
+    --primary-black-bg: #181818;
+    --secondary-black-bg: #1e1e1e;
+    --terciary-black-bg: #232323;
+    --quaternary-black-bg: #262626;
+
+    --primary-violet-bg: #8b5cf6;
+    --secondary-violet-bg: #A78BFA;
+
+    --primary-black-bg-90: #18181890;
 
     /*Text*/
-    --primary-tx-color: #eee;
-    --secondary-tx-color: #a3a3a3;
-    --secondary-tx-colorized: #8b5cf6;
-    --terciary-tx-colorized: #A78BFA;
+    --primary-white-tx: #eee;
+    --secondary-white-tx: #a3a3a3;
+    
+    --primary-violet-tx: #8b5cf6;
+    --secondary-violet-tx: #A78BFA;
 }
