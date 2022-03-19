@@ -1,6 +1,56 @@
-function GuildCreateModal({ GuildProps }) {
+import { useState } from "react"
 
-  let [GuildCreate, guildIcon, setGuildIcon, guildBackground, setGuildBackground, btnDisabled, setBTNDisabled] = [GuildProps.GuildCreate, GuildProps.guildIcon, GuildProps.setGuildIcon, GuildProps.guildBackground, GuildProps.setGuildBackground, GuildProps.btnDisabled, GuildProps.setBTNDisabled]
+function GuildCreateModal({ newGuilds, setNewGuilds, user }) {
+
+  const [btnDisabled, setBTNDisabled] = useState(false)
+  const [guildIcon, setGuildIcon] = useState(null)
+  const [guildBackground, setGuildBackground] = useState(null)
+
+  async function GuildCreate(e, guildName) {
+    e.preventDefault()
+    setBTNDisabled(true)
+
+    if (!guildName || !guildIcon || !guildBackground) return setBTNDisabled(false)
+
+
+    const body = new FormData();
+    body.append("guildName", guildName);
+    body.append("guildIcon", guildIcon);
+    body.append("guildBackground", guildBackground);
+
+    let imgUp = await fetch("./imageUpload", {
+      method: "POST",
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      },
+      body: body
+    })
+    if (imgUp.status !== 201) {
+      setBTNDisabled(false)
+    }
+
+    let filenames = await imgUp.json()
+    let guildCreate = await fetch("/api/guild/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        'Access-Control-Allow-Origin': '*'
+      },
+      body: JSON.stringify({
+        userID: user.id,
+        guildName: filenames.guildName,
+        guildImage: `/images/${filenames.guildIconFilename}`,
+        guildBackground: `/images/${filenames.guildBackgroundFilename}`,
+      })
+    })
+    if (guildCreate.status !== 201) {
+      setBTNDisabled(false);
+    }
+
+    setNewGuilds([...newGuilds, { guildIcon: `/images/${filenames.guildIconFilename}`, guildID: (await guildCreate.json()).id }])
+    setBTNDisabled(false)
+
+  }
 
   return (
     <div id="createModal" className="modal fade" tabIndex={-1} aria-labelledby="exampleModalLabel" aria-hidden="true">

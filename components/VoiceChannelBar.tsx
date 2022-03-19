@@ -1,9 +1,8 @@
 //Next & React
 import Head from "next/head";
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
-function ChannelBar({ channels, query, socket, user }) {
+function ChannelBar({ guildData, socket }) {
 
   async function CreateVoiceChannel(event) {
     if (event.key != "Enter") return
@@ -17,7 +16,7 @@ function ChannelBar({ channels, query, socket, user }) {
         "Content-Type": "application/json",
         'Access-Control-Allow-Origin': '*'
       },
-      body: JSON.stringify({ guildID: query[0], channelName: channelName, channelType: "voice" })
+      body: JSON.stringify({ guildID: guildData.id, channelName: channelName, channelType: "voice" })
 
     }).then((req) => {
       if (req.status == 200) {
@@ -125,16 +124,16 @@ function ChannelBar({ channels, query, socket, user }) {
       </Head>
       <div className="h-100 p-2 d-flex flex-column gap-2">
         {
-          channels?.map(el => (
-            el.channelType == "voice" ?
-              <div>
-                <p style={{ cursor: "pointer" }} onClick={() => { EnterChat(el.channelID) }}>{el.channelName}</p>
-                <div id={`box-${el.channelID}`}></div>
-              </div> :
-              <></>
-          ))
+          guildData.channels?.map(channel => {
+            if (channel.channelType != "voice") return
+
+            <div>
+              <p style={{ cursor: "pointer" }} onClick={() => { EnterChat(channel.channelID) }}>{channel.channelName}</p>
+              <div id={`box-${channel.channelID}`}></div>
+            </div>
+          })
         }
-        <input type="text" id="voiceInput" className="w-100" style={{ display: "none" }} onKeyDown={(event) => CreateVoiceChannel(event)} />
+        <input type="text" id="voiceChannelInput" className="w-100 d-none" onKeyDown={(event) => CreateVoiceChannel(event)} />
         <input type="button" id="button" />
       </div>
     </>

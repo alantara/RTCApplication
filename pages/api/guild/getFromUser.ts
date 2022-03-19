@@ -29,9 +29,9 @@ export async function GetUserGuilds(userID: number) {
             parseGuildsID.push(`guildID = ${userGuilds.guildID}`)
         }
 
-        let guildsData = (await knex.raw(`select guildName, guildIcon, guildID, guildBackground from guilds where ${parseGuildsID.join(" || ") ? parseGuildsID.join(" || ") : false}`))[0]
+        let userGuilds = (await knex.raw(`select guildName, guildIcon, guildID, guildBackground from guilds where ${parseGuildsID.join(" || ") ? parseGuildsID.join(" || ") : false}`))[0]
 
-        return { status: 200, json: { guildsData: guildsData } }
+        return { status: 200, json: { userGuilds: userGuilds } }
     } catch (err) {
         return { status: 500, json: { message: "GUILD_SEARCH_ERROR", error: err } }
     }

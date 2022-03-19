@@ -38,8 +38,6 @@ export default function SsrProfile({
 
     const [loading, setLoading] = useState(false);
 
-
-
     async function SignUp(e) {
         e.preventDefault()
 

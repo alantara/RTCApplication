@@ -21,8 +21,8 @@ export async function GetGuildChannels(guildID: number) {
     if (!ParseOnlyNumbers(guildID)) return { status: 400, json: { message: "INVALID_USER_ID" } }
 
     try {
-        let channels = (await knex.raw(`select channelName, channelID, channelType from channels where guildID = "${guildID}"`))[0]
-        return { status: 200, json: { channelsData: channels } }
+        let guildChannels = (await knex.raw(`select channelName, channelID, channelType from channels where guildID = "${guildID}"`))[0]
+        return { status: 200, json: { guildChannels: guildChannels } }
     } catch (err) {
         return { status: 500, json: { message: "CHANNEL_SEARCH_ERROR", error: err } }
     }

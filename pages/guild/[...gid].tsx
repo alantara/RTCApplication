@@ -12,7 +12,7 @@ import { GetMembers } from "../api/guild/getMembers";
 import GuildBar from "../../components/guildBar";
 import TextChannelBar from "../../components/TextChannelBar";
 import VoiceChannelBar from "../../components/VoiceChannelBar";
-import { useState } from "react";
+import MessageBar from "../../components/messageBar";
 
 
 const { io } = require("socket.io-client")
@@ -30,12 +30,14 @@ export const getServerSideProps = withSessionSsr(
             };
         }
 
-        let guildsData = (await GetUserGuilds(req.session.data.user.id)).json.guildsData
-        let channelList = (await GetGuildChannels(parseInt(query.gid[0]))).json.channelsData
-        let memberList = (await GetMembers(parseInt(query.gid[0]))).json.memberList
-        let cguild = guildsData?.filter(guilds => { return guilds.guildID == query.gid[0] })[0]
+        let connectedGuildID = query.gid[0]
+        let connectedChannelID = query.gid[1]
 
-        if (!cguild) {
+
+        let userGuilds = (await GetUserGuilds(req.session.data.user.id)).json.userGuilds
+        let currentGuild = userGuilds?.filter(guilds => { return guilds.guildID == connectedGuildID })[0]
+
+        if (!currentGuild) {
             return {
                 redirect: {
                     permanent: false,
@@ -44,30 +46,38 @@ export const getServerSideProps = withSessionSsr(
             };
         }
 
+        let guildChannels = (await GetGuildChannels(parseInt(connectedGuildID))).json.guildChannels
+        let guildMembers = (await GetMembers(parseInt(connectedGuildID))).json.guildMembers
+
+
         if (query.gid.length == 1) return {
             props: {
-                query: query.gid,
                 user: req.session.data.user,
-                loadGuilds: JSON.parse(JSON.stringify(guildsData)),
-                cguild: JSON.parse(JSON.stringify(cguild)),
-                channels: JSON.parse(JSON.stringify(channelList)),
-                messages: [],
-                memberList: JSON.parse(JSON.stringify(memberList)),
+                userGuilds: JSON.parse(JSON.stringify(userGuilds)),
+                currentGuild: {
+                    data: JSON.parse(JSON.stringify(currentGuild)),
+                    channels: JSON.parse(JSON.stringify(guildChannels)),
+                    members: JSON.parse(JSON.stringify(guildMembers)),
+                },
+                currentChannel: null
             },
         }
 
-        let messageList = (await getChannelMessages(parseInt(query.gid[1]))).json.messageList
+        let channelMessages = (await getChannelMessages(parseInt(connectedChannelID))).json.channelMessages
 
         if (query.gid.length == 2) return {
             props: {
-                query: query.gid,
                 user: req.session.data.user,
-                loadGuilds: JSON.parse(JSON.stringify(guildsData)),
-                cguild: JSON.parse(JSON.stringify(cguild)),
-                channels: JSON.parse(JSON.stringify(channelList)),
-                messages: JSON.parse(JSON.stringify(messageList)),
-                memberList: JSON.parse(JSON.stringify(memberList)),
-
+                userGuilds: JSON.parse(JSON.stringify(userGuilds)),
+                currentGuild: {
+                    data: JSON.parse(JSON.stringify(currentGuild)),
+                    channels: JSON.parse(JSON.stringify(guildChannels)),
+                    members: JSON.parse(JSON.stringify(guildMembers)),
+                },
+                currentChannel: {
+                    id: JSON.parse(JSON.stringify(connectedChannelID)),
+                    messages: JSON.parse(JSON.stringify(channelMessages))
+                }
             },
         };
 
@@ -75,7 +85,7 @@ export const getServerSideProps = withSessionSsr(
         if (query.gid.length > 2) return {
             redirect: {
                 permanent: false,
-                destination: `/${query.gid[0]}/${query.gid[1]}`
+                destination: `/${connectedGuildID}/${connectedChannelID}`
             }
         };
 
@@ -85,115 +95,35 @@ export const getServerSideProps = withSessionSsr(
 
 
 export default function SsrProfile({
-    query, user, loadGuilds, channels, messages, cguild, memberList
+    user, userGuilds, currentGuild, currentChannel
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-
-
-    //GuildBar
-    const [newGuilds, setNewGuilds] = useState([]);
-
-    const [guildIcon, setGuildIcon] = useState(null)
-    const [guildBackground, setGuildBackground] = useState(null)
-    const [btnDisabled, setBTNDisabled] = useState(false)
-
-    async function GuildCreate(e, guildName) {
-        e.preventDefault()
-        setBTNDisabled(true)
-
-        if (!guildName || !guildIcon || !guildBackground) return setBTNDisabled(false)
-
-
-        const body = new FormData();
-        body.append("guildName", guildName);
-        body.append("guildIcon", guildIcon);
-        body.append("guildBackground", guildBackground);
-
-        let imgUp = await fetch("./imageUpload", {
-            method: "POST",
-            headers: {
-                'Access-Control-Allow-Origin': '*'
-            },
-            body: body
-        })
-        if (imgUp.status !== 201) {
-            setBTNDisabled(false)
-        }
-
-        let filenames = await imgUp.json()
-        let guildCreate = await fetch("/api/guild/create", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                'Access-Control-Allow-Origin': '*'
-            },
-            body: JSON.stringify({
-                userID: user.id,
-                guildName: filenames.guildName,
-                guildImage: `/images/${filenames.guildIconFilename}`,
-                guildBackground: `/images/${filenames.guildBackgroundFilename}`,
-            })
-        })
-        if (guildCreate.status !== 201) {
-            setBTNDisabled(false);
-        }
-
-        setNewGuilds([...newGuilds, { guildIcon: `/images/${filenames.guildIconFilename}`, guildID: (await guildCreate.json()).id }])
-        setBTNDisabled(false)
-
-    }
 
     //Channel
     function InputToggle(id) {
         let input = (document.getElementById(id) as HTMLInputElement)
-        input.style.display == "block" ?
-            input.style.display = "none" :
-            input.style.display = "block"
+        input.classList.contains("d-none") ? input.classList.remove("d-none") : input.classList.add("d-none")
     }
 
 
-    //Message
-    const [messageList, setMessage] = useState([])
-
-    function MessageSend(e) {
-        if (e.key === "Enter") {
-            if (e.target.value == "") return;
-            socket.emit('message-create', { message: e.target.value, userID: user.id, channelID: query[1] })
-            e.target.value = ""
-            e.target.focus()
-        }
+    if (currentChannel?.id) {
+        socket.emit("text-channel-join", { room: currentChannel.id })
     }
 
-    socket.once("message-created", (message) => {
-        console.log("opa")
-        setMessage([...messageList, { messageText: message.text, messageID: message.id, messageAuthorID: message.author }])
-        let element = document.getElementById("messageContainer")
-        element.scrollTop = element.scrollHeight;
-    })
-
-    function y(memberList, el) {
-        let a = memberList.filter((e) => { return e.userID == el.messageAuthorID })
-        return [a[0].profileImage, a[0].accountUsername]
-    }
-
-    if (query[1]) {
-        socket.emit("text-channel-join", { room: query[1] })
-    }
-
-    return (<>
+    return (
 
         <div className="w-100 h-100 m-0 p-3 grid row overflow-hidden" style={{ backgroundColor: "var(--quaternary-black-bg)", backgroundImage: "url()", backgroundSize: "cover", backgroundPosition: "center" }}>
 
             <div className="py-4 d-flex flex-column align-items-center gap-2 rounded" style={{ width: "100px", backgroundColor: "var(--primary-black-bg-90)" }}>
-                <GuildBar newGuilds={newGuilds} loadGuilds={loadGuilds} />
+                <GuildBar userGuilds={userGuilds} user={user} />
             </div>
 
             <div className="p-0 d-flex flex-column" style={{ width: "440px" }}>
                 <div className="h-25 m-2 mt-0 p-0 row rounded" style={{ backgroundColor: "var(--primary-black-bg-90)" }}>
 
-                    <div className="p-0 rounded" style={{ backgroundImage: `url(${cguild.guildBackground})`, backgroundPosition: "center", backgroundSize: "cover" }}>
+                    <div className="p-0 rounded" style={{ backgroundImage: `url(${currentGuild.data.guildBackground})`, backgroundPosition: "center", backgroundSize: "cover" }}>
                         <div className="w-100 h-100 p-2" style={{ background: "#00000050" }}>
-                            <div className="rounded" style={{ width: "80px", height: "80px", backgroundImage: `url(${cguild.guildIcon})`, backgroundPosition: "center", backgroundSize: "cover" }}></div>
-                            <h2>{cguild.guildName}</h2>
+                            <div className="rounded" style={{ width: "80px", height: "80px", backgroundImage: `url(${currentGuild.data.guildIcon})`, backgroundPosition: "center", backgroundSize: "cover" }}></div>
+                            <h2>{currentGuild.data.guildName}</h2>
                         </div>
                     </div>
 
@@ -201,58 +131,29 @@ export default function SsrProfile({
                 <div className="h-75 m-0 p-0 row">
                     <div className="m-2 mb-0 p-2 col rounded" style={{ backgroundColor: "var(--primary-black-bg-90)" }}>
                         <ul className="border-bottom">
-                            <li>Text Channels <i className="bi bi-plus" style={{ cursor: "pointer" }} onClick={() => { InputToggle("textInput") }}></i></li>
+                            <li>Text Channels <i className="bi bi-plus" style={{ cursor: "pointer" }} onClick={() => { InputToggle("textChannelInput") }}></i></li>
                         </ul>
-                        <TextChannelBar channels={channels} query={query} />
+                        <TextChannelBar guildData={currentGuild} />
                     </div>
                     <div className="m-2 mb-0 p-2 col rounded" style={{ backgroundColor: "var(--primary-black-bg-90)" }}>
                         <ul className="border-bottom">
-                            <li>Voice Channels <i className="bi bi-plus" style={{ cursor: "pointer" }} onClick={() => { InputToggle("voiceInput") }}></i></li>
+                            <li>Voice Channels <i className="bi bi-plus" style={{ cursor: "pointer" }} onClick={() => { InputToggle("voiceChannelInput") }}></i></li>
                         </ul>
-                        <VoiceChannelBar channels={channels} query={query} socket={socket} user={user} />
+                        <VoiceChannelBar guildData={currentGuild} socket={socket} />
                     </div>
                 </div>
             </div>
 
             <div className="h-100 m-0 p-0 col d-flex flex-column rounded" style={{ backgroundColor: "var(--primary-black-bg-90)" }} >
                 {
-                    query[1] ?
-                        <>
-                            <div id="messageContainer" className="p-2 d-flex flex-column align-items-middle gap-10 overflow-y-scroll max-h-[calc(100vh-75px)]" style={{ overflow: "auto" }}>
-                                {
-                                    messages?.map(el => (
-                                        <div className="d-flex flex-column">
-                                            <div style={{ backgroundImage: `url(${y(memberList, el)[0]})`, backgroundPosition: "center", backgroundSize: "cover", height: "50px", width: "50px" }}></div>
-                                            <div className="flex flex-column align-items-middle text-left">
-                                                <h3>{y(memberList, el)[1]}</h3>
-                                                <p>{el.messageText}</p>
-                                            </div>
-                                        </div>
-                                    ))
-                                }
-                                {
-                                    messageList?.map(el => (
-                                        <div className="d-flex flex-column">
-                                            <div style={{ backgroundImage: `url(${y(memberList, el)[0]})`, backgroundPosition: "center", backgroundSize: "cover", height: "50px", width: "50px" }}></div>
-                                            <div className="flex flex-column align-items-middle text-left">
-                                                <h3>{y(memberList, el)[1]}</h3>
-                                                <p>{el.messageText}</p>
-                                            </div>
-                                        </div>
-                                    ))
-                                }
-                            </div>
-                            <div className="h-[100%] p-[10px_20px] bg-[color:var(--terciary-bg-color)] flex flex-col-reverse justify-center align-middle">
-                                <input type="text" onKeyDown={(e) => { MessageSend(e) }} />
-                            </div>
-                        </>
+                    currentChannel ?
+                        <MessageBar socket={socket} currentChannel={currentChannel} user={user} currentGuild={currentGuild} />
                         :
                         <></>
                 }
             </div>
 
         </div>
-    </>
     )
 
 

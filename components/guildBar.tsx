@@ -1,11 +1,18 @@
 //Next & React
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import GuildCreateModal from "./guildCreateModal";
+import GuildJoinModal from "./guildJoinModal";
 
-function GuildBar({ loadGuilds, newGuilds }) {
+function GuildBar({ userGuilds, user }) {
+
+  const [newGuilds, setNewGuilds] = useState([]);
 
   return (
     <>
+      <GuildCreateModal newGuilds={newGuilds} setNewGuilds={setNewGuilds} user={user} />
+      <GuildJoinModal />
+
       <Link href={`/guild`}>
         <div
           className="rounded-circle"
@@ -14,11 +21,11 @@ function GuildBar({ loadGuilds, newGuilds }) {
         </div>
       </Link>
       {
-        loadGuilds.map(loadGuild => (
-          <Link href={`/guild/${loadGuild.guildID}`}>
+        userGuilds.map(userGuild => (
+          <Link href={`/guild/${userGuild.guildID}`}>
             <div
               className="rounded-circle"
-              style={{ width: "60px", height: "60px", cursor: "pointer", backgroundImage: `url(${loadGuild.guildIcon})`, backgroundSize: "cover", backgroundPosition: "center" }}
+              style={{ width: "60px", height: "60px", cursor: "pointer", backgroundImage: `url(${userGuild.guildIcon})`, backgroundSize: "cover", backgroundPosition: "center" }}
             >
             </div>
           </Link>

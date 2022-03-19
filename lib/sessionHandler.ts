@@ -14,7 +14,7 @@ declare module "iron-session" {
                 id: number;
                 username: string;
                 email: string;
-                profilePic: string;
+                avatar: string;
             };
         };
     }
