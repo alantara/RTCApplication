@@ -1,6 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.css'
 import "bootstrap-icons/font/bootstrap-icons.css";
-import '../public/styles/global.css'
+import './global.css'
 
 import Head from "next/head";
 import { useEffect } from 'react';
@@ -15,8 +15,8 @@ export default function MyApp({ Component, pageProps }) {
     return (
         <>
             <Head>
-                <title>月(Tsuki) - A Simple Chat App</title>
-                <link rel="icon" type="image/png" sizes="32x32" href="/d_images/favicon.png" />
+                <title>Tony Chopper - im a reindeer</title>
+                <link rel="icon" type="image/png" sizes="32x32" href="/images/chopper" />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
             </Head>
 

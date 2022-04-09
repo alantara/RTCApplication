@@ -1,0 +1,101 @@
+.messageBar{
+    height: 100%;
+    padding: 10px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.messageContainer{
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 10px;
+
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--qua-bg) var(--sec-bg);
+    scrollbar-gutter: stable both-edges;
+}
+
+.message{
+    width: 100%;
+    height: 60px;
+    font-size: 20px;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 10px;
+}
+
+.messageAvatar{
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--pri-bg);
+}
+
+.messageAvatar > img{
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+}
+
+.messageContent{
+    width: 100%;
+    height: 60px;
+    font-size: 20px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.messageAuthor{
+    width: 100%;
+    height: 20px;
+    font-size: 20px;
+    color: var(--pri-text);
+}
+
+.messageText{
+    width: 100%;
+    height: 40px;
+    font-size: 20px;
+    color: var(--sec-text);
+}
+
+.messageInput{
+    width: 100%;
+    height: 40px;
+    font-size: 20px;
+    color: var(--pri-text);
+
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 10px;
+}
+
+.messageInput > input{
+    width: 100%;
+    height: 100%;
+    font-size: 20px;
+    color: var(--pri-text);
+    padding: 0 20px;
+
+    border: none;
+    background-color: var(--sec-bg);
+}

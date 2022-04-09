@@ -1,41 +1,51 @@
-import { DBConnect } from "../../../lib/dbconnect";
+//Default Api Imports
 import { withSessionRoute } from "../../../lib/sessionHandler";
-import { ParseEmail } from "../../../lib/argumentParse"
+import { NextApiRequest, NextApiResponse } from "next";
+import nextConnect from "next-connect";
 
-const knex = DBConnect()
+//Database Imports
+const supabase = global.supabase
 
-export default withSessionRoute(LogInRoute);
+const LogInRoute = nextConnect<NextApiRequest, NextApiResponse>({
+    onError(error, req, res) {
+        res.status(501).json({ message: "API_ERROR", error: error.message });
+    },
+    onNoMatch(req, res) {
+        res.status(405).json({ error: `Method '${req.method}' Not Allowed` });
+    },
+});
 
-async function LogInRoute(req, res) {
-  if (req.method != "POST") return res.status(405).json({ message: "METHOD_NOT_ALLOWED" });
+//Login Route
+LogInRoute.post(async (req, res) => {
+    if (req.session.data) return res.status(403).json({ message: "ALREADY_LOGGED_IN" });
 
-  if (req.session.data) return res.status(403).json({ message: "ALREADY_LOGGED_IN" });
+    let [email, password] = [req.body.email, req.body.password]
+    if (!email || !password) return res.status(400).json({ message: "MISSING_ARGUMENTS" })
 
-  let [email, password] = [req.body.email, req.body.password]
+    let { data: MATCH_ACCOUNTS, error: MATCH_ACCOUNTS_ERROR } = await supabase
+        .from('accounts')
+        .select('username,email,avatar,id')
+        .eq('email', `${email.toLowerCase()}`)
+        .eq("password", `${password}`)
 
-  if (!email || !password) return res.status(400).json({ message: "MISSING_ARGUMENTS" })
+    if (MATCH_ACCOUNTS_ERROR) return res.status(500).json({ message: "LOGIN_ERROR", error: MATCH_ACCOUNTS_ERROR })
 
-  if (!ParseEmail(email)) return res.status(400).json({ message: "INVALID_EMAIL" })
+    if (!MATCH_ACCOUNTS[0]) return res.status(404).json({ message: "INVALID_CREDENTIALS" })
+    if (MATCH_ACCOUNTS.length > 1) return res.status(403).json({ message: "MULTIPLE_USERS" })
 
-  try {
-    let data = (await knex.raw(`select accountUsername, accountEmail, profileImage, userID from accounts where accountEmail = "${email.toLowerCase()}" and binary accountPassword ="${password}"`))[0]
-    if (!data[0]) return res.status(404).json({ message: "USER_NOT_FOUND" })
+    let USER_ACCOUNT = MATCH_ACCOUNTS[0]
 
-    req.session = {
-      data: {
+    req.session.data = {
         user: {
-          username: data[0].accountUsername,
-          email: data[0].accountEmail,
-          id: data[0].userID,
-          profilePic: data[0].profileImage
+            username: USER_ACCOUNT.username,
+            email: USER_ACCOUNT.email,
+            id: USER_ACCOUNT.id,
+            avatar: USER_ACCOUNT.avatar
         },
-      }
     };
     await req.session.save();
-    return res.status(200).json({ message: "LOGGED_IN" });
+    return res.status(200).json({ USER_ACCOUNT });
 
-  } catch (err) {
-    return res.status(500).json({ message: "LOGIN_ERROR", error: err })
-  }
+});
 
-}
+export default withSessionRoute(LogInRoute);

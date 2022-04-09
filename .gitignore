@@ -1,5 +1,4 @@
-next-env.d.ts
-ideas.txt
+package-lock.json
 .env
-node_modules
 .next
+node_modules

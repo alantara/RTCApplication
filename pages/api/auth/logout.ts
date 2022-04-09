@@ -1,16 +1,25 @@
+//Default Imports
 import { withSessionRoute } from "../../../lib/sessionHandler";
+import { NextApiRequest, NextApiResponse } from "next";
+import nextConnect from "next-connect";
 
-export default withSessionRoute(LogoutRoute);
+const LogOutRoute = nextConnect<NextApiRequest, NextApiResponse>({
+    onError(error, req, res) {
+        res.status(501).json({ message: "API_ERROR", error: error.message });
+    },
+    onNoMatch(req, res) {
+        res.status(405).json({ error: `Method '${req.method}' Not Allowed` });
+    },
+});
 
-function LogoutRoute(req, res) {
-    if (req.method != "POST") return res.status(405).json({ message: "METHOD_NOT_ALLOWED" });
 
-    if (!req.session.data) return res.status(403).json({ message: "NOT_LOGGED_IN" });
+//Logout Route
+LogOutRoute.post(async (req, res) => {
+    if (!req.session.data) return res.status(401).json({ message: "NOT_LOGGED_IN" });
 
-    try {
-        req.session.destroy();
-        return res.status(200).json({ message: "LOGGED_OUT" });
-    } catch (err) {
-        return res.status(500).json({ message: "LOGOUT_ERROR", error: err })
-    }
-}
+    req.session.destroy();
+    return res.status(200).json({ message: "LOGGED_OUT" });
+
+});
+
+export default withSessionRoute(LogOutRoute);

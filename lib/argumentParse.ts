@@ -1,4 +1,7 @@
-export function ParseEmail(email) {
+// Argument parse snippet
+
+
+export function LibParseEmail(email: string) {
     return email
         .toString()
         .toLowerCase()
@@ -7,7 +10,7 @@ export function ParseEmail(email) {
         );
 }
 
-export function ParseName(username) {
+export function LibParseName(username: string) {
     return username
         .toString()
         .toLowerCase()
@@ -16,7 +19,7 @@ export function ParseName(username) {
         );
 }
 
-export function ParsePassword(password) {
+export function LibParsePassword(password: string) {
     return password
         .toString()
         .toLowerCase()
@@ -25,7 +28,7 @@ export function ParsePassword(password) {
         );
 }
 
-export function ParseOnlyNumbers(number) {
+export function LibParseOnlyNumbers(number: number) {
     return number
         .toString()
         .match(

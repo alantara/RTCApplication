@@ -1,7 +1,7 @@
 {
-  "name": "rtc-app",
+  "name": "tsuki",
   "version": "1.0.0",
-  "description": "",
+  "description": "A simple chat app",
   "main": "server.js",
   "scripts": {
     "dev": "next dev",
@@ -9,31 +9,25 @@
     "start": "next start",
     "lint": "next lint"
   },
-  "keywords": [],
-  "author": "",
+  "author": "Xarobil",
   "license": "ISC",
   "dependencies": {
     "@supabase/supabase-js": "^1.31.1",
-    "axios": "^0.26.0",
     "bootstrap": "^5.1.3",
     "bootstrap-icons": "^1.8.1",
-    "dayjs": "^1.10.7",
-    "dotenv": "^14.3.2",
-    "express": "^4.17.2",
-    "iron-session": "^6.0.5",
-    "knex": "^1.0.1",
+    "dotenv": "^16.0.0",
+    "express": "^4.17.3",
+    "iron-session": "^6.1.1",
     "multer": "^1.4.4",
-    "mysql": "^2.18.1",
-    "next": "^12.0.8",
+    "next": "^12.1.0",
+    "next-connect": "^0.12.2",
     "nodejs-snowflake": "^2.0.0",
-    "peerjs": "^1.3.2",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
     "socket.io": "^4.4.1",
     "socket.io-client": "^4.4.1"
   },
   "devDependencies": {
-    "@types/react": "^17.0.38",
+    "@types/bootstrap": "^5.1.9",
+    "@types/react": "^17.0.40",
     "typescript": "^4.5.5"
   }
 }

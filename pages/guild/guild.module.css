@@ -1,0 +1,12 @@
+.background{
+    background-color: var(--ter-bg);
+}
+
+.messageBar{
+    background-color: var(--ter-bg);
+}
+
+.memberBar{
+    width: 300px;
+    background-color: var(--sec-bg);
+}

@@ -3,20 +3,8 @@ import { InferGetServerSidePropsType } from "next";
 
 export const getServerSideProps = withSessionSsr(
     async function getServerSideProps({ req }) {
-        const user = req.session.user;
-        if (!user?.username) {
-            return {
-                redirect: {
-                    permanent: false,
-                    destination: "/auth/login"
-                }
-            };
-        }
-
         return {
-            redirect: {
-                permanent: false,
-                destination: "/user"
+            props: {
             }
         };
     }
@@ -25,8 +13,15 @@ export const getServerSideProps = withSessionSsr(
 export default function SsrProfile({
 
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-    return (<h1>Await For Redirect</h1>)
+    return (
+        <button onClick={() => {
+            fetch("/api/auth/logout", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    'Access-Control-Allow-Origin': '*'
+                }
+            })
+        }}>Logout</button>
+    )
 }
-
-
-

@@ -1,0 +1,49 @@
+.background{
+    background-color: var(--sec-bg);
+}
+
+.containerBackground{
+    background-color: var(--pri-bg)
+}
+
+.title{
+    color: var()
+}
+
+.input{
+    color: var(--pri-text);
+    background-color: var(--sec-bg);
+    outline: 0;
+}
+
+.input:focus{
+    background-color: var(--sec-bg);
+    color: var(--pri-text);
+}
+
+.label{
+    color: var(--sec-text);
+}
+
+.link{
+    color: var(--pri-text);
+    transition: ease-in-out;
+    transition-duration: 300ms;
+    cursor: pointer;
+}
+
+.link:hover{
+    color: var(--pri-text);
+}
+
+.button{
+    background-color: var();
+    color: var(--primary-white-tx);
+    outline: "none" ;
+    transition: ease-in-out;
+    transition-duration: 300ms;
+}
+
+.button:hover{
+    background-color: var();
+}

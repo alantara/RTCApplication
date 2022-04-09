@@ -1,0 +1,11 @@
+.background{
+    background-color: var(--pri-bg);
+}
+
+.input{
+    height: 50px;
+    width: 70%;
+    outline: 0;
+    color: var(--primary-tx-color);
+    font-size: 30px;
+}

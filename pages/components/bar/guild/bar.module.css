@@ -1,0 +1,46 @@
+.guildBar {
+    width: 100px;
+    height: 100%;
+    padding: 20px 0;
+    background-color: var(--pri-bg);
+
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 10px;
+
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--qua-bg) var(--sec-bg);
+    scrollbar-gutter: stable both-edges;
+}
+
+.menuContainer{
+    width: 60px;
+    height: 70px;
+
+    border-bottom: 2px solid var(--dis-text);
+}
+
+.guildIcon, .menuIcon, .plus {
+    width: 60px;
+    height: 60px;
+    min-height: 60px;
+    background-size: cover;
+    background-position: center;
+
+    border-radius: 30px;
+
+    cursor: pointer;
+    transition: 300ms;
+}
+
+.guildIcon:hover, .menuIcon:hover, .plus:hover {
+    transform: scale(1.1);
+}
+
+.plus {
+    display: flex;
+    font-size: 60px;
+}
