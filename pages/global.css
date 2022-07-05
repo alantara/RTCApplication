@@ -1,27 +1,27 @@
 *,
 *::before,
 *::after{
-    padding: 0;
-    margin: 0;
     box-sizing: border-box;
 }
 
 body, html, #__next{
     height: 100%;
     color: var(--pri-text);
+    background-color: var(--ter-bg);
 }
 
 :root{
     /*Background*/
     --pri-bg: #121212;
-    --sec-bg: #151515;
-    --ter-bg: #191919;
-    --qua-bg: #212121;
+    --sec-bg: #171717;
+    --ter-bg: #212121;
+    --qua-bg: #232323;
 
     /*Text*/
     --pri-text: #ffffff87;
     --sec-text: #ffffff60;
     --dis-text: #ffffff38;
+    --hig-text: #ffffff94;
 }
 
 button:focus, input:focus {

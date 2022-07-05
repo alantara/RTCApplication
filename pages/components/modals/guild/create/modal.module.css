@@ -1,11 +1,70 @@
-.background{
+.background {
     background-color: var(--pri-bg);
 }
 
-.input{
-    height: 50px;
-    width: 70%;
+.inputContainer {
+    width: 100%;
+    padding: 10px;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+}
+
+.nameInputContainer{
+    width: calc(100% - 100px);
+}
+
+.nameInputContainer>input,
+.nameInputContainer>input:focus {
+    width: 100%;
+    height: 100%;
+    
+    color: var(--pri-text);
+    background-color: var(--sec-bg);
+
     outline: 0;
-    color: var(--primary-tx-color);
-    font-size: 30px;
+    border: 0;
+}
+
+.fileInputContainer {
+    width: 100px;
+    height: 100px;
+}
+
+.fileInputContainer>label {
+    width: 100%;
+    height: 100%;
+
+    background-position: center;
+    background-size: cover;
+
+    cursor: pointer;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.label {
+    color: var(--sec-text);
+}
+
+.submitButton{
+    width: 50%;
+    color: var(--pri-text);
+}
+.submitButton:hover{
+    color: var(--sec-text);
+}
+
+.footerButtons{
+    color: var(--pri-text);
+}
+
+.footerButtons:hover{
+    color: var(--sec-text);
 }

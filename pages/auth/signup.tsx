@@ -8,7 +8,7 @@ import { useRouter } from 'next/router';
 
 //CSS
 import css from "./auth.module.css"
-import { LibSignUp } from "../../lib/auth/signup";
+import { LibSignUp } from "../../lib/auth/index";
 
 export const getServerSideProps = withSessionSsr(
     async function getServerSideProps({ req }) {
@@ -147,34 +147,34 @@ export default function SsrProfile({
     }
 
     return (
-        <div className={`w-100 h-100 d-flex flex-row align-items-center justify-content-end ${css.background}`}>
-            <div className={`h-100 p-4 col-xxl-5 col-xl-6 col-lg-8 col-md-8 col-sm-12 col-12 d-flex flex-column justify-content-center align-items-center ${css.containerBackground}`}>
-                <div className="w-100 px-4 mb-4 text-center">
+        <div className={`${css.bgContainer}`}>
+            <div className={`col-xxl-5 col-xl-6 col-lg-8 col-md-8 col-sm-12 col-12 ${css.leftContainer}`}>
+                <div className={`${css.titleContainer}`}>
                     <h2 className={`${css.title}`}>First Time Here?</h2>
                     <p>Sign Up using email and password</p>
                 </div>
 
-                <form className="w-100 h-auto px-4 d-flex flex-column gap-2 align-items-center" onSubmit={(e) => { SignupForm(e) }}>
+                <form className={`${css.formContainer}`} onSubmit={(e) => { SignupForm(e) }}>
                     <div className="w-75 form-floating mb-4">
-                        <input id="username" type="text" className={`w-100 h-100 border-0 form-control ${css.input}`} placeholder="Username" aria-label="Username" />
+                        <input id="username" type="text" className={`border-0 form-control ${css.input}`} placeholder="Username" aria-label="Username" />
                         <label htmlFor="email" className={`${css.label}`}>Username</label>
                         <div className="invalid-feedback">{errorMessage}</div>
                     </div>
 
                     <div className="w-75 form-floating mb-4">
-                        <input id="email" type="text" className={`w-100 h-100 border-0 form-control ${css.input}`} placeholder="Email" aria-label="Email" />
+                        <input id="email" type="text" className={`border-0 form-control ${css.input}`} placeholder="Email" aria-label="Email" />
                         <label htmlFor="email" className={`${css.label}`}>Email address</label>
                         <div className="invalid-feedback">{errorMessage}</div>
                     </div>
 
                     <div className="w-75 form-floating mb-4">
-                        <input id="password" type="password" className={`w-100 h-100 border-0 form-control ${css.input}`} placeholder="Password" aria-label="Password" />
+                        <input id="password" type="password" className={`border-0 form-control ${css.input}`} placeholder="Password" aria-label="Password" />
                         <label htmlFor="password" className={`${css.label}`}>Password</label>
                         <div className="invalid-feedback">{errorMessage}</div>
                     </div>
 
                     <div className="w-75 form-floating mb-4">
-                        <input id="cpassword" type="password" className={`w-100 h-100 border-0 form-control ${css.input}`} placeholder="Confirm Password" aria-label="Confirm Password" />
+                        <input id="cpassword" type="password" className={`border-0 form-control ${css.input}`} placeholder="Confirm Password" aria-label="Confirm Password" />
                         <label htmlFor="password" className={`${css.label}`}>Confirm Password</label>
                         <div className="invalid-feedback">{errorMessage}</div>
                     </div>

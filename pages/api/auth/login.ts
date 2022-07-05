@@ -3,6 +3,9 @@ import { withSessionRoute } from "../../../lib/sessionHandler";
 import { NextApiRequest, NextApiResponse } from "next";
 import nextConnect from "next-connect";
 
+//Argument Parsing
+import { LibParseEmail, LibParsePassword } from "../../../lib/argumentParse";
+
 //Database Imports
 const supabase = global.supabase
 
@@ -21,6 +24,9 @@ LogInRoute.post(async (req, res) => {
 
     let [email, password] = [req.body.email, req.body.password]
     if (!email || !password) return res.status(400).json({ message: "MISSING_ARGUMENTS" })
+
+    if (!LibParseEmail(email)) return res.status(400).json({ message: "INVALID_EMAIL" })
+    if (!LibParsePassword(password)) return res.status(400).json({ message: "INVALID_PASSWORD" })
 
     let { data: MATCH_ACCOUNTS, error: MATCH_ACCOUNTS_ERROR } = await supabase
         .from('accounts')

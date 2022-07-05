@@ -1,9 +1,7 @@
 //Default Imports
 import { NextApiRequest, NextApiResponse } from "next";
 import nextConnect from "next-connect";
-
-//Custom Imports
-import { LibParseName, LibParseOnlyNumbers } from "../../../lib/argumentParse";
+import { LibParseName } from "../../../lib/argumentParse";
 
 //snowflake generator
 const { Snowflake } = require('nodejs-snowflake');
@@ -25,6 +23,8 @@ const GuildCreateRoute = nextConnect<NextApiRequest, NextApiResponse>({
 //Guild Create Route
 GuildCreateRoute.post(async (req, res) => {
     let [userID, guildName, guildImage] = [req.body.userID, req.body.guildName, req.body.guildImage]
+    if (!userID || !guildName || !guildImage) return res.status(400).json({ message: "MISSING_ARGUMENTS" })
+    if (isNaN(userID)) return res.status(400).json({ message: "ARGUMENT_INVALID_TYPE" })
 
     let api = await CreateGuild(userID, guildName, guildImage)
     res.status(api.status).json(api.json)
@@ -33,24 +33,22 @@ GuildCreateRoute.post(async (req, res) => {
 
 //Guild Create
 export async function CreateGuild(userID: number, guildName: string, guildImage: string) {
-    if (!userID || !guildName) return { status: 400, json: { message: "MISSING_ARGUMENTS" } }
 
-    if (!LibParseOnlyNumbers(userID)) return { status: 400, json: { message: "INVALID_USER_ID" } }
-    if (!LibParseName(guildName)) return { status: 400, json: { message: "INVALID_GUILD_NAME" } }
+    if(!LibParseName(guildName)) return { status: 400, json: { message: "INVALID_GUILD_NAME" } }
 
     let id = parseInt(uid.idFromTimestamp(Date.now()))
 
-    let { data: CREATE_GUILD, error: CREATE_GUILD_ERROR } = await supabase
+    let { data: CREATE_GUILD, error: E_CREATE_GUILD } = await supabase
         .from('guilds')
         .insert([{ id: id, name: guildName, authorID: userID, iconURL: guildImage }])
 
-    if (CREATE_GUILD_ERROR) return { status: 500, json: { message: "CREATE_GUILD_ERROR", error: CREATE_GUILD_ERROR } }
+    if (E_CREATE_GUILD) return { status: 500, json: { message: "CREATE_GUILD_ERROR", error: E_CREATE_GUILD } }
 
-    let { data: MEMBER_ADD, error: MEMBER_ADD_ERROR } = await supabase
+    let { data: MEMBER_ADD, error: E_MEMBER_ADD } = await supabase
         .from('members')
         .insert([{ userID: userID, guildID: id }])
 
-    if (MEMBER_ADD_ERROR) return { status: 500, json: { message: "MEMBER_ADD_ERROR", error: MEMBER_ADD_ERROR } }
+    if (E_MEMBER_ADD) return { status: 500, json: { message: "MEMBER_ADD_ERROR", error: E_MEMBER_ADD } }
 
     return { status: 201, json: { CREATE_GUILD } }
 }

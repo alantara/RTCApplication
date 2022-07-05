@@ -1,13 +1,13 @@
+//Default Imports
 import { NextApiRequest, NextApiResponse } from "next";
 import nextConnect from 'next-connect';
-
-import multer from 'multer';
 
 //Snowflake
 const { Snowflake } = require('nodejs-snowflake');
 const uid = new Snowflake();
 
 //Multer
+import multer from 'multer';
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, `${process.cwd()}\\ImageDir`)

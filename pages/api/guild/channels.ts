@@ -2,9 +2,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import nextConnect from "next-connect";
 
-//Custom Imports
-import { LibParseOnlyNumbers } from "../../../lib/argumentParse";
-
 //Database Imports
 const supabase = global.supabase
 
@@ -21,6 +18,8 @@ const GuildChannelsRoute = nextConnect<NextApiRequest, NextApiResponse>({
 //Guild Channels Route
 GuildChannelsRoute.post(async (req, res) => {
     let [guildID] = [req.body.guildID]
+    if (!guildID) return res.status(400).json({ message: "MISSING_ARGUMENTS" })
+    if (isNaN(guildID)) return res.status(400).json({ message: "ARGUMENT_INVALID_TYPE" })
 
     let api = await GuildChannels(guildID)
     res.status(api.status).json(api.json)
@@ -29,16 +28,13 @@ GuildChannelsRoute.post(async (req, res) => {
 
 //Guild Channels
 export async function GuildChannels(guildID: number) {
-    if (!guildID) return { status: 400, json: { message: "MISSING_ARGUMENTS" } }
 
-    if (!LibParseOnlyNumbers(guildID)) return { status: 400, json: { message: "INVALID_GUILD_ID" } }
-
-    let { data: GUILD_CHANNELS, error: GUILD_CHANNELS_ERROR } = await supabase
+    let { data: GUILD_CHANNELS, error: E_GUILD_CHANNELS } = await supabase
         .from('channels')
         .select("id,name,type")
         .eq("guildID", guildID)
 
-    if (GUILD_CHANNELS_ERROR) return { status: 500, json: { message: "GUILD_CHANNELS_ERROR", error: GUILD_CHANNELS_ERROR } }
+    if (E_GUILD_CHANNELS) return { status: 500, json: { message: "GUILD_CHANNELS_ERROR", error: E_GUILD_CHANNELS } }
 
     return { status: 200, json: { GUILD_CHANNELS } }
 }

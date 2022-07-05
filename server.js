@@ -28,9 +28,12 @@ nextApp.prepare().then(() => {
         let file = req.params.file;
         const fileTypes = ["gif", "jpg", "png", "jpeg"]
 
-        if (fs.existsSync(`${process.cwd()}/ImageDir/${file}`)) return res.sendFile(`${process.cwd()}/ImageDir/${file}`)
+        let extensionedFile = `${process.cwd()}/ImageDir/${file}`
+        if (fs.existsSync(extensionedFile)) return res.sendFile(extensionedFile)
+
         for (let type of fileTypes) {
-            if (fs.existsSync(`${process.cwd()}/ImageDir/${file}.${type}`)) return res.sendFile(`${process.cwd()}/ImageDir/${file}.${type}`)
+            let nonextensionedFile = `${process.cwd()}/ImageDir/${file}.${type}`
+            if (fs.existsSync(nonextensionedFile)) return res.sendFile(nonextensionedFile)
         }
     })
 
@@ -46,24 +49,26 @@ nextApp.prepare().then(() => {
 //Websocket Connection Configuration
 ioSocket.on('connection', (socket) => {
 
-    socket.on('voice-room', () => {
+    socket.on('id-set', ({ socketID }) => {
+        socket.join(`id-${socketID}`)
+    });
+
+    socket.on('voice-channel-join', ({ channelID, userID }) => {
         socket.join(`voice`)
+        socket.join(`voice-${channelID}`)
+        socket.broadcast.to(`voice-${channelID}`).emit(`seek-offer`, { seekerID: userID })
     });
 
     socket.on('candidate', ({ data }) => {
         socket.broadcast.to(`voice`).emit(`new-candidate`, { data })
     });
 
-    socket.on('seek-offer', ({ seekerID }) => {
-        socket.broadcast.to(`voice`).emit(`found-offer`, { seekerID })
+    socket.on('offer-send', ({ offer, seekerID, offererID }) => {
+        ioSocket.to(`id-${seekerID}`).emit(`offer`, { offer, offererID })
     });
 
-    socket.on('offer', ({ offer, to, offererID }) => {
-        socket.to(to).emit(`send-offer`, { offer, offererID })
-    });
-
-    socket.on('answer', ({ answer, to }) => {
-        socket.to(to).emit(`send-answer`, { answer })
+    socket.on('answer-send', ({ answer, offererID }) => {
+        ioSocket.to(`id-${offererID}`).emit(`answer`, { answer })
     });
 
 
@@ -89,24 +94,6 @@ ioSocket.on('connection', (socket) => {
             socket.leave(exitRoom)
         })
         socket.join(`@${room}`)
-    });
-
-    socket.on('voice-channel-join', ({ room, id }) => {
-        let parsedRoom = `!${room}`
-        let exitRoom = Array.from(socket.rooms).slice(1).filter(searchRoom => { return searchRoom.startsWith("!") })[0]
-
-        console.log(exitRoom, parsedRoom)
-        if (exitRoom == parsedRoom) return
-
-        socket.leave(exitRoom)
-
-        socket.join(parsedRoom)
-        socket.broadcast.to(parsedRoom).emit("voice-user-joined", { id: id })
-        socket.on("disconnecting", () => {
-            Array.from(socket.rooms).slice(1).filter(searchRoom => { return searchRoom.startsWith("!") }).forEach(exitRoom => {
-                socket.broadcast.to(exitRoom).emit("voice-user-disconnected", { id: socket.id })
-            })
-        })
     });
 
     socket.on('voice-channel-disconnect', ({ id }) => {

@@ -7,7 +7,7 @@ const { Snowflake } = require('nodejs-snowflake');
 const uid = new Snowflake();
 
 //Custom Imports
-import { LibParseName, LibParseOnlyNumbers } from "../../../lib/argumentParse";
+import { LibParseName } from "../../../lib/argumentParse";
 
 //Database Imports
 const supabase = global.supabase
@@ -25,6 +25,8 @@ const ChannelCreateRoute = nextConnect<NextApiRequest, NextApiResponse>({
 //Channel Create Route
 ChannelCreateRoute.post(async (req, res) => {
     let [guildID, channelName, channelType] = [req.body.guildID, req.body.channelName, req.body.channelType]
+    if (!guildID || !channelName || !channelType) return res.status(400).json({ message: "MISSING_ARGUMENTS" })
+    if (isNaN(guildID)) return res.status(400).json({ message: "ARGUMENT_INVALID_TYPE" })
 
     let api = await ChannelCreate(guildID, channelName, channelType)
     res.status(api.status).json(api.json)
@@ -33,19 +35,17 @@ ChannelCreateRoute.post(async (req, res) => {
 
 //Channel Create
 export async function ChannelCreate(guildID: number, channelName: string, channelType: string) {
-    if (!guildID || !channelName || !channelType) return { status: 400, json: { message: "MISSING_ARGUMENTS" } }
 
-    if (!LibParseOnlyNumbers(guildID)) return { status: 400, json: { message: "INVALID_GUILD_ID" } }
     if (!LibParseName(channelName)) return { status: 400, json: { message: "INVALID_CHANNEL_NAME" } }
     if (!LibParseName(channelType)) return { status: 400, json: { message: "INVALID_CHANNEL_TYPE" } }
 
     let id = parseInt(uid.idFromTimestamp(Date.now()))
 
-    let { data: CREATE_CHANNEL, error: CREATE_CHANNEL_ERROR } = await supabase
+    let { data: CREATE_CHANNEL, error: E_CREATE_CHANNEL } = await supabase
         .from('channels')
         .insert([{ id: id, name: channelName, guildID: guildID, type: channelType }])
 
-    if (CREATE_CHANNEL_ERROR) return { status: 500, json: { message: "CREATE_CHANNEL_ERROR", error: CREATE_CHANNEL_ERROR } }
+    if (E_CREATE_CHANNEL) return { status: 500, json: { message: "CREATE_CHANNEL_ERROR", error: E_CREATE_CHANNEL } }
 
     return { status: 201, json: { CREATE_CHANNEL } }
 }

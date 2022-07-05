@@ -1,9 +1,7 @@
 //Default Imports
 import { NextApiRequest, NextApiResponse } from "next";
 import nextConnect from "next-connect";
-
-//Custom Imports
-import { LibParseOnlyNumbers } from "../../../lib/argumentParse";
+import { LibParseNumberOnly } from "../../../lib/argumentParse";
 
 //Database Imports
 const supabase = global.supabase
@@ -21,6 +19,8 @@ const UserGuildsRoute = nextConnect<NextApiRequest, NextApiResponse>({
 //User Guilds Route
 UserGuildsRoute.post(async (req, res) => {
     let [userID] = [req.body.userID]
+    if (!userID) return res.status(400).json({ message: "MISSING_ARGUMENTS" })
+    if (isNaN(userID)) return res.status(400).json({ message: "ARGUMENT_INVALID_TYPE" })
 
     let api = await UserGuilds(userID)
     res.status(api.status).json(api.json)
@@ -29,25 +29,21 @@ UserGuildsRoute.post(async (req, res) => {
 
 //User Guilds
 export async function UserGuilds(userID: number) {
-    if (!userID) return { status: 400, json: { message: "MISSING_ARGUMENTS" } }
-
-    if (!LibParseOnlyNumbers(userID)) return { status: 400, json: { message: "INVALID_USER_ID" } }
-
-    let { data: USER_GUILDS_ID, error: USER_GUILDS_ID_ERROR } = await supabase
+    let { data: USER_GUILDS_ID, error: E_USER_GUILDS_ID } = await supabase
         .from('members')
         .select("guildID")
         .eq("userID", userID)
 
-    if (USER_GUILDS_ID_ERROR) return { status: 500, json: { message: "USER_GUILDS_ID_ERROR", error: USER_GUILDS_ID_ERROR } }
+    if (E_USER_GUILDS_ID) return { status: 500, json: { message: "USER_GUILDS_ID_ERROR", error: E_USER_GUILDS_ID } }
 
-    let userGuilds = USER_GUILDS_ID.map((guild) => { return guild.guildID })
+    let userGuildsIDMap = USER_GUILDS_ID.map((guild) => { return guild.guildID })
 
-    let { data: USER_GUILDS, error: USER_GUILDS_ERROR } = await supabase
+    let { data: USER_GUILDS, error: E_USER_GUILDS } = await supabase
         .from('guilds')
         .select("id,name,iconURL,backgroundURL")
-        .in("id", userGuilds)
+        .in("id", userGuildsIDMap)
 
-    if (USER_GUILDS_ERROR) return { status: 500, json: { message: "USER_GUILDS_ERROR", error: USER_GUILDS_ERROR } }
+    if (E_USER_GUILDS) return { status: 500, json: { message: "USER_GUILDS_ERROR", error: E_USER_GUILDS } }
 
     return { status: 200, json: { USER_GUILDS } }
 }

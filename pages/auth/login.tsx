@@ -8,7 +8,7 @@ import { useRouter } from 'next/router';
 
 //CSS
 import css from "./auth.module.css"
-import { LibLogIn } from "../../lib/auth/login";
+import { LibLogIn } from "../../lib/auth/index";
 
 export const getServerSideProps = withSessionSsr(
     async function getServerSideProps({ req }) {
@@ -96,26 +96,34 @@ export default function SsrProfile({
                     input.classList.add("is-invalid")
                 });
                 break
+
+            case "INVALID_PASSWORD":
+                setErrorMessage("Please Insert A Valid Password")
+                Array.from(getInput).forEach(input => {
+                    if (input.id !== "password") return
+                    input.classList.add("is-invalid")
+                });
+                break
         }
     }
 
     return (
-        <div className={`w-100 h-100 d-flex flex-row align-items-center justify-content-end ${css.background}`}>
-            <div className={`h-100 p-4 col-xxl-5 col-xl-6 col-lg-8 col-md-8 col-sm-12 col-12 d-flex flex-column justify-content-center align-items-center ${css.containerBackground}`}>
-                <div className="w-100 px-4 mb-4 text-center">
+        <div className={`${css.bgContainer}`}>
+            <div className={`col-xxl-5 col-xl-6 col-lg-8 col-md-8 col-sm-12 col-12 ${css.leftContainer}`}>
+                <div className={`${css.titleContainer}`}>
                     <h2 className={`${css.title}`}>Welcome Back!</h2>
                     <p>Log in using your email and password</p>
                 </div>
 
-                <form className="w-100 h-auto px-4 d-flex flex-column gap-2 align-items-center" onSubmit={(e) => { LoginForm(e) }}>
+                <form className={`${css.formContainer}`} onSubmit={(e) => { LoginForm(e) }}>
                     <div className="w-75 form-floating mb-4">
-                        <input id="email" type="text" className={`w-100 h-100 border-0 form-control ${css.input}`} placeholder="Email" aria-label="Email" />
+                        <input id="email" type="text" className={`border-0 form-control ${css.input}`} placeholder="Email" aria-label="Email" />
                         <label htmlFor="email" className={`${css.label}`}>Email address</label>
                         <div className="invalid-feedback">{errorMessage}</div>
                     </div>
 
                     <div className="w-75 form-floating mb-4">
-                        <input id="password" type="password" className={`w-100 h-100 border-0 form-control ${css.input}`} placeholder="Password" aria-label="Password" />
+                        <input id="password" type="password" className={`border-0 form-control ${css.input}`} placeholder="Password" aria-label="Password" />
                         <label htmlFor="password" className={`${css.label}`}>Password</label>
                         <div className="invalid-feedback">{errorMessage}</div>
                     </div>

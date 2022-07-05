@@ -1,19 +1,21 @@
-import { useRouter } from "next/router"
+//React
 import { useState } from "react"
+
+//Create Functions
 import { LibGuildCreate } from "../../../../../lib/guild/create";
 import { LibFetchImage } from "../../../../../lib/image/fetch";
 
+//CSS
 import css from "./modal.module.css"
 
-function GuildCreateModal({ user, guildsHolderState }) {
+function GuildCreateModal({ user, guildsHolderState, modalMethods }) {
 
   const [guildIcon, setGuildIcon] = useState(null)
+  const [guildName, setGuildName] = useState("My Super Guild")
   const [modalMessage, setModalMessage] = useState("")
 
   async function GuildCreateForm(e) {
     e.preventDefault()
-
-    let guildName = (document.getElementById("guildName") as HTMLInputElement).value
 
     let guildIconFetch = await LibFetchImage(guildIcon)
 
@@ -24,8 +26,8 @@ function GuildCreateModal({ user, guildsHolderState }) {
 
     if (response.status === 201) {
       let responseJSON = (await response.json()).CREATE_GUILD[0]
-      guildsHolderState.addtoGuildsHolder([...guildsHolderState.guildsHolder, responseJSON])
-      return setModalMessage("Guild Created!")
+      guildsHolderState.set([...guildsHolderState.data, responseJSON])
+      return modalMethods("create", "hide")
     }
 
     switch ((await response.json()).message) {
@@ -39,46 +41,67 @@ function GuildCreateModal({ user, guildsHolderState }) {
     }
   }
 
+  const closeModal = () => {
+    modalMethods("create", "hide")
+
+    setGuildIcon(null)
+    setGuildName("My Super Guild")
+    setModalMessage("")
+  }
+
+  const changeModal = (next: string) => {
+    modalMethods("create", "hide")
+    modalMethods(next, "show")
+
+    setGuildIcon(null)
+    setGuildName("My Super Guild")
+    setModalMessage("")
+  }
+
   return (
-    <div id="createModal" className="modal fade" tabIndex={-1} aria-labelledby="createModal" aria-hidden="true">
+    <div id="createModal" className="modal fade" tabIndex={-1} data-bs-backdrop="static">
       <div className="modal-dialog">
+
         <div className={`modal-content ${css.background}`}>
 
-          <div className="modal-header border-0">
+          <div className="modal-header border-dark">
             <h5 id="createModal" className="modal-title">Create Guild</h5>
-            <button type="button" className="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onClick={() => setModalMessage("")}></button>
+            <button type="button" className="btn-close btn-close-white" aria-label="Close" onClick={closeModal}></button>
           </div>
 
-          <div className="modal-body m-3 p-0 border-0 rounded d-flex flex-column">
-            {
-              modalMessage ?
-                <>
-                  {modalMessage}
-                </>
-                :
-                <form className="p-2" onSubmit={(e) => { GuildCreateForm(e) }}>
-                  <div className="p-2 col d-flex align-items-center justify-content-between">
-                    <input type="text" id="guildName" className={`border-0 bg-transparent ${css.input}`} placeholder="My Super Guild" />
+          <div className="modal-body">
 
-                    <label htmlFor="guildIcon" className="m-2 rounded d-flex flex-column align-items-center justify-content-center" style={{ height: "100px", width: "100px", border: guildIcon ? "none" : "2px dashed #dddddd90", cursor: "pointer", backgroundImage: guildIcon ? `url(${URL.createObjectURL(guildIcon)})` : "none", backgroundPosition: "center", backgroundSize: "cover" }}>
-                      <input type="file" className="" id="guildIcon" style={{ display: "none" }} onChange={(e) => { setGuildIcon(e.target.files[0]) }} />
-                      <i className="bi bi-file-earmark-image" style={{ fontSize: "50px", opacity: guildIcon ? 0 : 1 }}></i>
-                    </label>
-                  </div>
+            <form onSubmit={(e) => { GuildCreateForm(e) }}>
 
-                  <div className="w-100 p-2 d-flex justify-content-center col">
-                    <button type="submit" className="btn w-75" style={{ backgroundColor: "var(--primary-violet-bg)", color: "var(--primary-tx-color)" }}>Create</button>
-                  </div>
-                </form>
-            }
+              <div className={`${css.inputContainer}`}>
+
+                <div className={`form-floating ${css.nameInputContainer}`}>
+                  <input id="guildName" type="text" placeholder="Guild Name" className="form-control" value={guildName} onChange={(e) => setGuildName(e.target.value)} />
+                  <label htmlFor="guildName" className={`${css.label}`}>Guild Name</label>
+                </div>
+
+                <div className={`${css.fileInputContainer}`}>
+                  <label htmlFor="guildIcon" style={{ border: guildIcon ? "none" : "2px dashed #dddddd90", backgroundImage: guildIcon ? `url(${URL.createObjectURL(guildIcon)})` : "none" }}>
+                    <input type="file" id="guildIcon" style={{ display: "none" }} onChange={(e) => { setGuildIcon(e.target.files[0]) }} />
+                    <i className="bi bi-file-earmark-image" style={{ fontSize: "50px", opacity: guildIcon ? 0 : 1 }}></i>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                {modalMessage ? <p>{modalMessage}</p> : <></>}
+              </div>
+
+              <div className="text-center">
+                <button type="submit" className={`btn ${css.submitButton}`}>Create</button>
+              </div>
+
+            </form>
+
           </div>
 
-          <div className="modal-footer border-0">
-            {
-              modalMessage ? <button type="button" className="btn btn-secondary" onClick={() => { setModalMessage("") }}>Return</button> : <></>
-            }
-
-            <button type="button" className="btn btn-primary border-0" data-bs-toggle="modal" data-bs-dismiss="modal" data-bs-target="#joinModal" style={{ backgroundColor: "var(--primary-violet-bg)" }}>Join</button>
+          <div className="modal-footer border-dark">
+            <button type="button" className={`btn ${css.footerButtons}`} onClick={() => changeModal("join")}>Join</button>
           </div>
         </div>
       </div>

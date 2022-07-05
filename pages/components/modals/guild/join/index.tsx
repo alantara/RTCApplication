@@ -1,22 +1,25 @@
+//React
 import { useState } from "react"
+
+//Join Functions
 import { LibJoinGuild } from "../../../../../lib/guild/join"
 
+//CSS
 import css from "./modal.module.css"
 
-function GuildCreateModal({ user, guildsHolderState }) {
+function GuildCreateModal({ user, guildsHolderState, modalMethods }) {
 
+  const [guildID, setGuildID] = useState("")
   const [modalMessage, setModalMessage] = useState("")
 
   async function GuildJoinForm(e) {
     e.preventDefault()
 
-    let guildID = parseInt((document.getElementById("guildID") as HTMLInputElement).value)
-
-    let response = await LibJoinGuild(user.id, guildID)
+    let response = await LibJoinGuild(user.id, parseInt(guildID))
 
     if (response.status === 201) {
       let responseJSON = (await response.json()).MEMBER_GUILD[0]
-      guildsHolderState.addtoGuildsHolder([...guildsHolderState.guildsHolder, responseJSON])
+      guildsHolderState.set([...guildsHolderState.data, responseJSON])
       return setModalMessage("Guild Created!")
     }
 
@@ -27,45 +30,64 @@ function GuildCreateModal({ user, guildsHolderState }) {
       case "INVALID_GUILD_ID":
         setModalMessage("Invalid Guild ID")
         break
-
+      case "MEMBER_GUILD_ERROR":
+        setModalMessage("Guild ID probably is non existant")
+        break
     }
   }
 
+  const closeModal = () => {
+    modalMethods("join", "hide")
+
+    setGuildID("")
+    setModalMessage("")
+  }
+
+  const changeModal = (next: string) => {
+    modalMethods("join", "hide")
+    modalMethods(next, "show")
+
+    setGuildID("")
+    setModalMessage("")
+  }
+
   return (
-    <div id="joinModal" className="modal fade" tabIndex={-1} aria-labelledby="joinModal" aria-hidden="true">
+    <div id="joinModal" className="modal fade" tabIndex={-1} data-bs-backdrop="static">
       <div className="modal-dialog">
+
         <div className={`modal-content ${css.background}`}>
 
-          <div className="modal-header border-0">
+          <div className="modal-header border-dark">
             <h5 id="joinModal" className="modal-title">Join Guild</h5>
-            <button type="button" className="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onClick={() => setModalMessage("")}></button>
+            <button type="button" className="btn-close btn-close-white" aria-label="Close" onClick={closeModal}></button>
           </div>
 
-          <div className="modal-body m-3 p-0 border-0 rounded d-flex flex-column">
-            {
-              modalMessage ?
-                <>
-                  {modalMessage}
-                </>
-                :
-                <form className="p-2" onSubmit={(e) => { GuildJoinForm(e) }}>
-                  <div className="p-2 col d-flex align-items-center justify-content-between">
-                    <input type="text" id="guildID" className={`border-0 bg-transparent ${css.input}`} placeholder="GuildID" />
-                  </div>
+          <div className="modal-body">
 
-                  <div className="w-100 p-2 d-flex justify-content-center col">
-                    <button type="submit" className="btn w-75" style={{ backgroundColor: "var(--primary-violet-bg)", color: "var(--primary-tx-color)" }}>Join</button>
-                  </div>
-                </form>
-            }
+            <form onSubmit={(e) => { GuildJoinForm(e) }}>
+
+              <div className={`${css.inputContainer}`}>
+
+                <div className={`form-floating ${css.nameInputContainer}`}>
+                  <input id="guildID" type="text" placeholder="Guild ID" className="form-control" value={guildID} onChange={(e) => setGuildID(e.target.value)} />
+                  <label htmlFor="guildID" className={`${css.label}`}>Guild ID</label>
+                </div>
+              </div>
+
+              <div>
+                {modalMessage ? <p>{modalMessage}</p> : <></>}
+              </div>
+
+              <div className="text-center">
+                <button type="submit" className={`btn ${css.submitButton}`}>Join</button>
+              </div>
+
+            </form>
+
           </div>
 
-          <div className="modal-footer border-0">
-            {
-              modalMessage ? <button type="button" className="btn btn-secondary" onClick={() => { setModalMessage("") }}>Return</button> : <></>
-            }
-
-            <button type="button" className="btn btn-primary border-0" data-bs-toggle="modal" data-bs-dismiss="modal" data-bs-target="#createModal" style={{ backgroundColor: "var(--primary-violet-bg)" }}>Create</button>
+          <div className="modal-footer border-dark">
+            <button type="button" className={`btn ${css.footerButtons}`} onClick={() => changeModal("create")}>Create</button>
           </div>
         </div>
       </div>

@@ -29,11 +29,11 @@ export const getServerSideProps = withSessionSsr(
             };
         }
 
-        const userGuilds = (await UserGuilds(req.session.data.user.id)).json.USER_GUILDS
+        const userGuilds = (await UserGuilds(sessionData.user.id)).json.USER_GUILDS
 
         if (!query.gid) return {
             props: {
-                user: req.session.data.user,
+                user: sessionData.user,
                 userGuilds: LibParse(userGuilds),
                 currentGuild: null,
                 currentChannel: null
@@ -100,14 +100,19 @@ export const getServerSideProps = withSessionSsr(
     }
 );
 
+const { io } = require("socket.io-client")
+const clientSocket = io();
+
 export default function SsrProfile({
     user, userGuilds, currentGuild, currentChannel
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
 
+    clientSocket.emit("id-set", { socketID: user.id })
+
     return (
         <div className={`w-100 h-100 m-0 p-0 grid row overflow-hidden ${css.background}`}>
             <GuildBar user={user} userGuilds={userGuilds} guildID={currentGuild?.data.id} />
-            {currentGuild ? <ChannelBar currentGuild={currentGuild} /> : <></>}
+            {currentGuild ? <ChannelBar currentGuild={currentGuild} clientSocket={clientSocket} userID={user.id} /> : <></>}
             {currentChannel ? <MessageBar user={user} currentGuild={currentGuild} currentChannel={currentChannel} /> : <></>}
             {/* <div className={`h-100 m-0 p-0 d-flex flex-column ${css.memberBar}`}>
 

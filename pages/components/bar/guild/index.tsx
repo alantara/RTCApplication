@@ -1,6 +1,7 @@
 //Next & React
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { LibLogOut } from "../../../../lib/auth/index";
 
 //Modals
 import GuildCreateModal from "../../modals/guild/create";
@@ -12,11 +13,50 @@ import css from "./bar.module.css"
 function GuildBar({ user, userGuilds, guildID }) {
 
     const [guildsHolder, addtoGuildsHolder] = useState(userGuilds)
+    const [guildCreateModal, setGuildCreateModal] = useState(null)
+    const [guildJoinModal, setGuildJoinModal] = useState(null)
+
+    useEffect(() => {
+        let bootstrap = require('bootstrap/dist/js/bootstrap')
+        setGuildCreateModal(new bootstrap.Modal(document.getElementById('createModal')))
+        setGuildJoinModal(new bootstrap.Modal(document.getElementById('joinModal')))
+    }, [])
+
+    const ModalMethods = (modal, method) => {
+        if (modal === "create") {
+            switch (method) {
+                case "toggle":
+                    guildCreateModal.toggle()
+                    break
+                case "show":
+                    guildCreateModal.show()
+                    break
+                case "hide":
+                    guildCreateModal.hide()
+                    break
+            }
+        }
+
+        if (modal === "join") {
+            switch (method) {
+                case "toggle":
+                    guildJoinModal.toggle()
+                    break
+                case "show":
+                    guildJoinModal.show()
+                    break
+                case "hide":
+                    guildJoinModal.hide()
+                    break
+            }
+        }
+
+    }
 
     return (
         <>
-            <GuildCreateModal user={user} guildsHolderState={{ guildsHolder, addtoGuildsHolder }} />
-            <GuildJoinModal user={user} guildsHolderState={{ guildsHolder, addtoGuildsHolder }} />
+            <GuildCreateModal user={user} guildsHolderState={{ data: guildsHolder, set: addtoGuildsHolder }} modalMethods={ModalMethods} />
+            <GuildJoinModal user={user} guildsHolderState={{ data: guildsHolder, set: addtoGuildsHolder }} modalMethods={ModalMethods} />
 
             <div className={`${css.guildBar}`}>
                 <div className={`${css.menuContainer}`}>
@@ -27,12 +67,13 @@ function GuildBar({ user, userGuilds, guildID }) {
 
                 {
                     guildsHolder.map(guild => (
-                        <Link href={`/guild/${guild.id}`}>
+                        <Link key={guild.id} href={`/guild/${guild.id}`}>
                             <div className={`${css.guildIcon}`} style={{ backgroundImage: `url(${guild.iconURL})`, borderRadius: guildID == guild.id ? "15px" : "30px" }}></div>
                         </Link>
                     ))
                 }
-                <i className={`bi bi-plus ${css.plus}`} data-bs-toggle="modal" data-bs-target="#createModal"></i>
+                <i className={`bi bi-plus ${css.plus}`} onClick={() => ModalMethods("create", "show")}></i>
+                <button onClick={LibLogOut}>Logout</button>
             </div>
         </>
     )

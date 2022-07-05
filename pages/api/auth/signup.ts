@@ -3,12 +3,11 @@ import { withSessionRoute } from "../../../lib/sessionHandler";
 import { NextApiRequest, NextApiResponse } from "next";
 import nextConnect from "next-connect";
 
-//Custom Imports
+//Argument Parsing
 import { LibParseEmail, LibParseName, LibParsePassword } from "../../../lib/argumentParse";
 
 //Database Imports
 const supabase = global.supabase
-
 
 //snowflake generator
 const { Snowflake } = require('nodejs-snowflake');
@@ -42,7 +41,7 @@ SignUpRoute.post(async (req, res) => {
         .eq('email', `${email.toLowerCase()}`)
 
     if (EMAIL_ERROR) return res.status(500).json({ message: "EMAIL_SEARCH_ERROR", error: EMAIL_ERROR })
-    if (EMAIL_MATCH_ACCOUNTS.length != 0) return res.status(403).json({ message: "EMAIL_TAKEN" })
+    if (EMAIL_MATCH_ACCOUNTS.length !== 0) return res.status(403).json({ message: "EMAIL_TAKEN" })
 
     let { data: USERNAME_MATCH_ACCOUNT, error: USERNAME_ERROR } = await supabase
         .from('accounts')
@@ -50,7 +49,7 @@ SignUpRoute.post(async (req, res) => {
         .eq('username', `${username}`)
 
     if (USERNAME_ERROR) return res.status(500).json({ message: "USERNAME_SEARCH_ERROR", error: USERNAME_ERROR })
-    if (USERNAME_MATCH_ACCOUNT.length != 0) return res.status(403).json({ message: "USERNAME_TAKEN" })
+    if (USERNAME_MATCH_ACCOUNT.length !== 0) return res.status(403).json({ message: "USERNAME_TAKEN" })
 
     let userID = parseInt(uid.idFromTimestamp(Date.now()))
 
@@ -62,10 +61,10 @@ SignUpRoute.post(async (req, res) => {
 
     req.session.data = {
         user: {
-            username: INSERT_ACCOUNT_DATA.username,
-            email: INSERT_ACCOUNT_DATA.email,
-            id: INSERT_ACCOUNT_DATA.id,
-            avatar: INSERT_ACCOUNT_DATA.avatar
+            username: INSERT_ACCOUNT_DATA[0].username,
+            email: INSERT_ACCOUNT_DATA[0].email,
+            id: INSERT_ACCOUNT_DATA[0].id,
+            avatar: INSERT_ACCOUNT_DATA[0].avatar
         },
     };
     await req.session.save();
